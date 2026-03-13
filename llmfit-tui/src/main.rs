@@ -1455,8 +1455,8 @@ fn main() {
         return;
     }
 
-    // If --cli flag, use classic fit output
-    if cli.cli {
+    // If --cli or --json flag, use classic fit output
+    if cli.cli || cli.json {
         run_fit(
             cli.perfect,
             cli.limit,
