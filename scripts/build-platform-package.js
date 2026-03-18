@@ -21,7 +21,7 @@ if (!platform) {
   process.exit(1);
 }
 
-const packageRoot = path.resolve(__dirname, "..", "npm", platform.packageName);
+const packageRoot = path.resolve(__dirname, "..", "npm", platform.packageDir);
 const binDir = path.join(packageRoot, "bin");
 const binaryTarget = path.join(binDir, platform.binaryName);
 const readmePath = path.join(packageRoot, "README.md");

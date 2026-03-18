@@ -5,3 +5,4 @@ llmfit-desktop/gen/schemas/*
 data/gguf_sources_cache.json
 /node_modules
 /npm/minefit-*
+/npm/barkey-minefit-*

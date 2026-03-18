@@ -28,19 +28,19 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             platform_id: linux-x64-gnu
-            package_name: minefit-linux-x64-gnu
+            package_dir: barkey-minefit-linux-x64-gnu
           - target: x86_64-apple-darwin
             os: macos-latest
             platform_id: darwin-x64
-            package_name: minefit-darwin-x64
+            package_dir: barkey-minefit-darwin-x64
           - target: aarch64-apple-darwin
             os: macos-latest
             platform_id: darwin-arm64
-            package_name: minefit-darwin-arm64
+            package_dir: barkey-minefit-darwin-arm64
           - target: x86_64-pc-windows-msvc
             os: windows-latest
             platform_id: win32-x64-msvc
-            package_name: minefit-win32-x64-msvc
+            package_dir: barkey-minefit-win32-x64-msvc
 
     runs-on: ${{ matrix.os }}
 
@@ -117,8 +117,8 @@ jobs:
       - name: Upload npm package directory
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: npm-${{ matrix.package_name }}
-          path: npm/${{ matrix.package_name }}
+          name: npm-${{ matrix.package_dir }}
+          path: npm/${{ matrix.package_dir }}
 
   release:
     needs: build
