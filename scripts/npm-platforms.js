@@ -2,7 +2,7 @@
 
 const path = require("node:path");
 
-const VERSION = "0.7.8";
+const VERSION = "0.7.9";
 
 const PLATFORMS = [
   {
