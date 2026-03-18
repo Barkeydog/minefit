@@ -36,7 +36,7 @@
 The goal is operational usefulness. `minefit` is built to answer a narrower question than a generic portfolio tracker: *what can this machine mine, what does power do to the economics, and what method looks best right now?*
 
 > [!NOTE]
-> The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining rows against that hardware automatically.
+> The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining setups against that hardware automatically.
 
 ---
 
@@ -71,30 +71,6 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 - Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
 - Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
-## Developer Setup
-
-Run from source:
-
-```powershell
-cargo run -p minefit --manifest-path .\Cargo.toml --
-```
-
-Install the local binary:
-
-```powershell
-cargo install --path .\llmfit-tui --force
-minefit
-```
-
-Useful overrides:
-
-```powershell
-minefit --power-plan pge-e-tou-c
-minefit --location WA
-minefit --electricity 0.16
-minefit --memory 24G
-```
-
 ## Ranking Model
 
 `minefit` blends market opportunity with operational drag. A row score is influenced by:
@@ -121,54 +97,5 @@ This means a row can appear with a negative net return if it is technically poss
 - [CoinPaprika discovery catalog](https://docs.coinpaprika.com/api-reference/coins/list-coins)
 
 When a source is unavailable or rate-limited, cached snapshots are used so startup stays fast and the app degrades cleanly instead of failing hard.
-
-## Repository Layout
-
-```text
-llmfit-core/      Core mining, power, hardware, cache, and ranking logic
-llmfit-tui/       Terminal UI, CLI, persistence, and app shell
-llmfit-desktop/   Experimental desktop shell
-bin/              npm wrapper entrypoint
-assets/github/    README logos and presentation assets
-.github/          CI, release automation, and contribution templates
-```
-
-## Development
-
-Build:
-
-```powershell
-cargo build -p minefit --manifest-path .\Cargo.toml
-```
-
-Test:
-
-```powershell
-cargo test --manifest-path .\Cargo.toml
-```
-
-Format:
-
-```powershell
-cargo fmt --all
-```
-
-Lint:
-
-```powershell
-cargo clippy --all-targets --all-features
-```
-
-## Documentation
-
-- [API.md](./API.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [SECURITY.md](./SECURITY.md)
-
-## Status
-
-`minefit` is an actively maintained mining-focused fork with a stable public TUI, CLI, and JSON interface.
-
-## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Barkeydog/minefit&type=Date)](https://www.star-history.com/#Barkeydog/minefit&Date)
