@@ -1,5 +1,29 @@
 # Development
 
+## Developer Setup
+
+### Run from source
+
+```powershell
+cargo run -p minefit --manifest-path .\Cargo.toml --
+```
+
+### Install the local binary
+
+```powershell
+cargo install --path .\llmfit-tui --force
+minefit
+```
+
+### Useful overrides
+
+```powershell
+minefit --power-plan pge-e-tou-c
+minefit --location WA
+minefit --electricity 0.16
+minefit --memory 24G
+```
+
 ## Repository Layout
 
 ```text

@@ -71,30 +71,6 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 - Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
 - Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
-## Developer Setup
-
-Run from source:
-
-```powershell
-cargo run -p minefit --manifest-path .\Cargo.toml --
-```
-
-Install the local binary:
-
-```powershell
-cargo install --path .\llmfit-tui --force
-minefit
-```
-
-Useful overrides:
-
-```powershell
-minefit --power-plan pge-e-tou-c
-minefit --location WA
-minefit --electricity 0.16
-minefit --memory 24G
-```
-
 ## Ranking Model
 
 `minefit` blends market opportunity with operational drag. A row score is influenced by:
