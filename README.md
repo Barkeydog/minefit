@@ -100,14 +100,7 @@ Best for:
 
 This is the most styled version and is closest in spirit to the `rdme` screenshot you liked.
 
-```text
-┌──────────────────────────────────────────────┐
-│ Quick Start                                  │
-├──────────────────────────────────────────────┤
-│ $ npm install -g minefit                     │
-│ $ minefit                                    │
-└──────────────────────────────────────────────┘
-```
+![Option D terminal install card](assets/github/install-card.svg)
 
 You can follow it with one short sentence:
 
@@ -214,7 +207,7 @@ llmfit-core/      Core mining, power, hardware, cache, and ranking logic
 llmfit-tui/       Terminal UI, CLI, persistence, and app shell
 llmfit-desktop/   Experimental desktop shell
 bin/              npm wrapper entrypoint
-assets/github/    README logos and screenshot assets
+assets/github/    README logos and presentation assets
 .github/          CI, release automation, and contribution templates
 ```
 
