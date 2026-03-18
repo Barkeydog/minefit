@@ -159,16 +159,6 @@ Lint:
 cargo clippy --all-targets --all-features
 ```
 
-## Documentation
-
-- [API.md](./API.md)
-- [CONTRIBUTING.md](./CONTRIBUTING.md)
-- [SECURITY.md](./SECURITY.md)
-
-## Status
-
-`minefit` is an actively maintained mining-focused fork with a stable public TUI, CLI, and JSON interface.
-
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Barkeydog/minefit&type=Date)](https://www.star-history.com/#Barkeydog/minefit&Date)
