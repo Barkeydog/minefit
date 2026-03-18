@@ -32,95 +32,25 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ---
 
-## Install Concepts
+## Quick Start
 
-This branch is a README exploration branch. The four install patterns below are intentionally shown together so you can compare them in GitHub and decide which one should ship on `main`.
+![minefit install card](assets/github/install-card.svg)
 
-### Option A: Minimal Quick Start
+`npm` is the primary install path. On supported platforms, `minefit` installs as a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
 
-```powershell
-npm install -g minefit
-minefit
-```
-
-Best for:
-- fast scanning
-- clean CLI-first repos
-- keeping the page feeling technical and direct
-
-### Option B: Primary + Fallback
-
-#### Recommended: npm
+If you just want to install and run it:
 
 ```powershell
 npm install -g minefit
 minefit
 ```
 
-Installs the public npm package and resolves to a prebuilt native binary on supported platforms.
-
-#### Cargo
+For a quick non-TUI snapshot:
 
 ```powershell
-cargo install --path .\llmfit-tui --force
-minefit
+minefit --cli -n 12
+minefit --json -n 25
 ```
-
-#### From source
-
-```powershell
-cargo run -p minefit --manifest-path .\Cargo.toml --
-```
-
-Best for:
-- making `npm` clearly primary
-- still supporting contributors and local builds
-- a more professional product-style layout
-
-### Option C: Method Table
-
-| Path | Command | Use when |
-| --- | --- | --- |
-| `npm` | `npm install -g minefit` | Normal install on supported platforms |
-| `cargo` | `cargo install --path .\llmfit-tui --force` | Local Rust development |
-| `source` | `cargo run -p minefit --manifest-path .\Cargo.toml --` | Running directly from the repo |
-
-Then run:
-
-```powershell
-minefit
-```
-
-Best for:
-- compact documentation
-- multiple install paths
-- readers who prefer scanning tables
-
-### Option D: Terminal Card
-
-This is the most styled version and is closest in spirit to the `rdme` screenshot you liked.
-
-![Option D terminal install card](assets/github/install-card.svg)
-
-You can follow it with one short sentence:
-
-> `npm` is the primary install path and resolves to a prebuilt native binary on supported platforms.
-
-Best for:
-- a more branded feel
-- visual separation without heavy HTML
-- a hero-adjacent install treatment
-
-### My Recommendation
-
-If this were shipping today, I would use **Option B**.
-
-It reads like a real product README:
-- `npm` is clearly first
-- the basic install path is still just two commands
-- Cargo and source usage stay visible without cluttering the top of the page
-
-For a more distinctive look, **Option D** is the strongest alternative.
 
 ## Why minefit
 
