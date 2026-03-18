@@ -14,6 +14,7 @@ use ratatui::{
 
 pub fn draw(frame: &mut Frame, app: &mut App) {
     let tc = app.theme.colors();
+    let system_bar_height = system_bar_height(app, frame.area().width);
 
     if tc.bg != Color::Reset {
         let bg = Block::default().style(Style::default().bg(tc.bg));
@@ -23,8 +24,8 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
     let outer = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(3),
-            Constraint::Length(3),
+            Constraint::Length(system_bar_height),
+            Constraint::Length(6),
             Constraint::Min(10),
             Constraint::Length(1),
         ])
@@ -49,6 +50,11 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 }
 
 fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
+    let cpu_info = format!(
+        "{} ({} cores)",
+        app.specs.cpu_name,
+        app.specs.total_cpu_cores
+    );
     let gpu_info = if app.specs.gpus.is_empty() {
         format!("GPU: none ({})", app.specs.backend.label())
     } else {
@@ -69,34 +75,23 @@ fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         }
     };
 
-    let text = Line::from(vec![
+    let line_one = Line::from(vec![
         Span::styled(" CPU: ", Style::default().fg(tc.muted)),
-        Span::styled(
-            format!("{} ({} cores)", app.specs.cpu_name, app.specs.total_cpu_cores),
-            Style::default().fg(tc.fg),
-        ),
+        Span::styled(cpu_info, Style::default().fg(tc.fg)),
         Span::styled("  |  ", Style::default().fg(tc.muted)),
         Span::styled("RAM: ", Style::default().fg(tc.muted)),
         Span::styled(
             format!(
-                "{:.1} GB avail / {:.1} GB total",
+                "{:.1}/{:.1} GB",
                 app.specs.available_ram_gb, app.specs.total_ram_gb
             ),
             Style::default().fg(tc.accent),
         ),
         Span::styled("  |  ", Style::default().fg(tc.muted)),
         Span::styled(gpu_info, Style::default().fg(tc.accent_secondary)),
-        Span::styled("  |  ", Style::default().fg(tc.muted)),
-        Span::styled(
-            format!("Rankable: {}", app.snapshot.rankable_coin_count()),
-            Style::default().fg(tc.good),
-        ),
-        Span::styled("  |  ", Style::default().fg(tc.muted)),
-        Span::styled(
-            format!("Catalog: {}", app.snapshot.catalog_asset_count()),
-            Style::default().fg(tc.accent),
-        ),
-        Span::styled("  |  ", Style::default().fg(tc.muted)),
+    ]);
+
+    let line_two = Line::from(vec![
         Span::styled(
             format!("Snapshot: {}", app.snapshot_badge()),
             Style::default().fg(tc.info),
@@ -119,22 +114,34 @@ fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         .title(" minefit ")
         .title_style(Style::default().fg(tc.title).add_modifier(Modifier::BOLD));
 
-    frame.render_widget(Paragraph::new(text).block(block), area);
+    frame.render_widget(
+        Paragraph::new(vec![line_one, line_two])
+            .block(block)
+            .wrap(Wrap { trim: false }),
+        area,
+    );
 }
 
 fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
-    let chunks = Layout::default()
+    let rows = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3), Constraint::Length(3)])
+        .split(area);
+
+    let top = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Min(24), Constraint::Length(16), Constraint::Length(16)])
+        .split(rows[0]);
+
+    let bottom = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([
-            Constraint::Min(24),
-            Constraint::Length(16),
-            Constraint::Length(16),
             Constraint::Length(12),
             Constraint::Length(12),
-            Constraint::Length(18),
+            Constraint::Min(18),
             Constraint::Length(14),
         ])
-        .split(area);
+        .split(rows[1]);
 
     let search_style = match app.input_mode {
         InputMode::Search => Style::default().fg(tc.accent_secondary),
@@ -156,16 +163,16 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
                 .title(" Search ")
                 .title_style(search_style),
         ),
-        chunks[0],
+        top[0],
     );
 
     if app.input_mode == InputMode::Search {
-        frame.set_cursor_position((chunks[0].x + app.cursor_position as u16 + 1, chunks[0].y + 1));
+        frame.set_cursor_position((top[0].x + app.cursor_position as u16 + 1, top[0].y + 1));
     }
 
     draw_summary_box(
         frame,
-        chunks[1],
+        top[1],
         " Algorithms (A) ",
         if app.visible_algorithm_count() == app.algorithms.len() {
             "All".to_string()
@@ -184,7 +191,7 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
 
     draw_summary_box(
         frame,
-        chunks[2],
+        top[2],
         " Methods (M) ",
         if app.visible_method_count() == app.methods.len() {
             "All".to_string()
@@ -203,7 +210,7 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
 
     draw_summary_box(
         frame,
-        chunks[3],
+        bottom[0],
         " Sort [s] ",
         app.sort_column.label().to_string(),
         tc.accent,
@@ -218,7 +225,7 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
     };
     draw_summary_box(
         frame,
-        chunks[4],
+        bottom[1],
         " Fit [f] ",
         app.fit_filter.label().to_string(),
         fit_color,
@@ -227,7 +234,7 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
 
     draw_summary_box(
         frame,
-        chunks[5],
+        bottom[2],
         " Power [e] ",
         app.power_badge(),
         tc.warning,
@@ -236,7 +243,7 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
 
     draw_summary_box(
         frame,
-        chunks[6],
+        bottom[3],
         " Theme [t] ",
         app.theme.label().to_string(),
         tc.info,
@@ -360,7 +367,7 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
             Row::new(vec![
                 Cell::from(format!("{} {}", row.coin.symbol, truncate(&row.coin.name, 10))).style(base_style),
                 Cell::from(truncate(&row.coin.algorithm, 12)).style(base_style),
-                Cell::from(truncate(&row.rig_name, 12)).style(base_style.fg(tc.info)),
+                Cell::from(compact_device_name(&row.rig_name, 14)).style(base_style.fg(tc.info)),
                 Cell::from(row.method.name).style(base_style.fg(strategy_color(row.method.strategy, tc))),
                 Cell::from(format!("{:.0}", row.score)).style(base_style.fg(score_color(row.score, tc))),
                 Cell::from(format!("{:.2}", row.net_usd_day)).style(net_style),
@@ -378,7 +385,7 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
     let widths = [
         Constraint::Length(14),
         Constraint::Length(13),
-        Constraint::Length(14),
+        Constraint::Length(16),
         Constraint::Length(13),
         Constraint::Length(7),
         Constraint::Length(11),
@@ -415,13 +422,66 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         return;
     };
 
+    let header_primary = format!(
+        "{} {} | {} | {} | {}",
+        row.coin.symbol, row.coin.name, row.coin.algorithm, row.method.name, row.fit_text()
+    );
+    let header_lines = vec![header_primary, row.method.description.to_string()];
+    let metrics_height = 4.min(area.height.saturating_sub(3));
+    let min_reasons_height = 6.min(area.height.saturating_sub(metrics_height + 1));
+    let reserve_middle_height = 8.min(area.height.saturating_sub(metrics_height + min_reasons_height));
+    let header_height_needed = block_height_for_lines(area.width, &header_lines).max(4);
+    let header_height_cap = area
+        .height
+        .saturating_sub(metrics_height + min_reasons_height + reserve_middle_height);
+    let header_height = if header_height_cap == 0 {
+        3
+    } else {
+        header_height_needed.min(header_height_cap.max(3))
+    };
+
+    let economics_lines = vec![
+        format!("Gross/day: ${:.2}", row.gross_usd_day),
+        format!("Power/day: ${:.2}", row.power_cost_usd_day),
+        format!("Power/mo: ${:.2}", row.power_cost_usd_month),
+        format!("Fees/day: ${:.2}", row.fee_cost_usd_day),
+        format!("Stale/day: ${:.2}", row.stale_cost_usd_day),
+        format!("Service/day: ${:.2}", row.service_cost_usd_day),
+        format!("Zero-Blk %: {:.1}%", row.variance_zero_block_pct),
+    ];
+    let market_lines = vec![
+        format!("Price: ${:.6}", row.coin.price_usd),
+        format!(
+            "Liquidity: {}",
+            format_liquidity(row.coin.market_cap_usd, row.coin.volume_24h_usd)
+        ),
+        format!("Block Time: {:.0}s", row.coin.block_time_sec),
+        format!("Block Reward: {:.4}", row.coin.block_reward),
+        format!("24h Price: {:+.1}%", row.coin.price_trend_pct),
+        format!("24h Difficulty: {:+.1}%", row.coin.difficulty_trend_pct),
+        format!("Rig: {}", row.rig_name),
+        format!("Payout: {}", row.method.payout_mode.label()),
+    ];
+    let detail_column_width = area.width.saturating_sub(3) / 2;
+    let middle_height_needed = block_height_for_lines(detail_column_width, &economics_lines)
+        .max(block_height_for_lines(detail_column_width, &market_lines))
+        .max(9);
+    let middle_height_cap = area
+        .height
+        .saturating_sub(header_height + metrics_height + min_reasons_height);
+    let middle_height = if middle_height_cap == 0 {
+        4
+    } else {
+        middle_height_needed.min(middle_height_cap.max(4))
+    };
+
     let sections = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
-            Constraint::Length(4),
-            Constraint::Length(6),
-            Constraint::Length(9),
-            Constraint::Min(8),
+            Constraint::Length(header_height),
+            Constraint::Length(metrics_height),
+            Constraint::Length(middle_height),
+            Constraint::Min(min_reasons_height.max(3)),
         ])
         .split(area);
 
@@ -452,7 +512,8 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             .border_style(Style::default().fg(tc.border))
             .title(" Detail ")
             .title_style(Style::default().fg(tc.title).add_modifier(Modifier::BOLD)),
-    );
+    )
+    .wrap(Wrap { trim: false });
     frame.render_widget(header, sections[0]);
 
     let metrics = Layout::default()
@@ -490,7 +551,8 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             .border_style(Style::default().fg(tc.border))
             .title(" Economics ")
             .title_style(Style::default().fg(tc.accent_secondary)),
-    );
+    )
+    .wrap(Wrap { trim: false });
     frame.render_widget(economics, middle[0]);
 
     let market = Paragraph::new(vec![
@@ -513,7 +575,8 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             .border_style(Style::default().fg(tc.border))
             .title(" Coin Snapshot ")
             .title_style(Style::default().fg(tc.accent_secondary)),
-    );
+    )
+    .wrap(Wrap { trim: false });
     frame.render_widget(market, middle[1]);
 
     let mut reason_lines = vec![
@@ -787,4 +850,106 @@ fn truncate(value: &str, width: usize) -> String {
     } else {
         format!("{}...", value.chars().take(width.saturating_sub(3)).collect::<String>())
     }
+}
+
+fn compact_device_name(value: &str, width: usize) -> String {
+    let mut compact = value
+        .replace("(R)", "")
+        .replace("(TM)", "")
+        .replace("CPU", "")
+        .replace("NVIDIA GeForce ", "")
+        .replace("AMD Radeon ", "")
+        .replace("Intel Core ", "")
+        .replace("Intel Xeon ", "")
+        .replace("AMD Ryzen ", "")
+        .replace("AMD EPYC ", "");
+    compact = compact.split_whitespace().collect::<Vec<_>>().join(" ");
+    truncate(compact.trim(), width)
+}
+
+fn system_bar_strings(app: &App) -> (String, String) {
+    let gpu_info = if app.specs.gpus.is_empty() {
+        format!("GPU: none ({})", app.specs.backend.label())
+    } else {
+        let primary = &app.specs.gpus[0];
+        match primary.vram_gb {
+            Some(vram) => format!(
+                "GPU: {} ({:.1} GB{}, {})",
+                primary.name,
+                vram,
+                if primary.count > 1 {
+                    format!(" x{}", primary.count)
+                } else {
+                    String::new()
+                },
+                primary.backend.label()
+            ),
+            None => format!("GPU: {} ({})", primary.name, primary.backend.label()),
+        }
+    };
+
+    let line_one = format!(
+        "CPU: {} ({} cores)  |  RAM: {:.1}/{:.1} GB  |  {}",
+        app.specs.cpu_name,
+        app.specs.total_cpu_cores,
+        app.specs.available_ram_gb,
+        app.specs.total_ram_gb,
+        gpu_info,
+    );
+    let line_two = format!(
+        "Snapshot: {}  |  Power: {}  |  Rig: {}",
+        app.snapshot_badge(),
+        app.power_badge(),
+        app.rig_badge(),
+    );
+
+    (line_one, line_two)
+}
+
+fn system_bar_height(app: &App, width: u16) -> u16 {
+    let (line_one, line_two) = system_bar_strings(app);
+    block_height_for_lines(width, &[line_one, line_two]).max(4)
+}
+
+fn block_height_for_lines(width: u16, lines: &[String]) -> u16 {
+    let inner_width = width.saturating_sub(2) as usize;
+    let wrapped = lines
+        .iter()
+        .map(|line| wrapped_line_count(line, inner_width))
+        .sum::<u16>();
+    wrapped.saturating_add(2)
+}
+
+fn wrapped_line_count(text: &str, width: usize) -> u16 {
+    if width == 0 {
+        return 1;
+    }
+
+    let mut lines = 0u16;
+    for raw_line in text.lines() {
+        let line = raw_line.trim_end();
+        if line.is_empty() {
+            lines = lines.saturating_add(1);
+            continue;
+        }
+
+        let mut current = 0usize;
+        let mut line_count = 1u16;
+        for word in line.split_whitespace() {
+            let word_len = word.chars().count();
+            if current == 0 {
+                line_count = line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
+                current = ((word_len.saturating_sub(1)) % width) + 1;
+            } else if current + 1 + word_len <= width {
+                current += 1 + word_len;
+            } else {
+                line_count = line_count.saturating_add(1);
+                line_count = line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
+                current = ((word_len.saturating_sub(1)) % width) + 1;
+            }
+        }
+        lines = lines.saturating_add(line_count);
+    }
+
+    lines.max(1)
 }

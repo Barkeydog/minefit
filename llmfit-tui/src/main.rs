@@ -118,9 +118,7 @@ fn run_cli(
     sort_rankings(&mut rows, sort, false);
 
     println!(
-        "minefit | {} rankable coins | {} catalog assets | snapshot {} | BTC ${:.2} | power {}",
-        snapshot.rankable_coin_count(),
-        snapshot.catalog_asset_count(),
+        "minefit | snapshot {} | BTC ${:.2} | power {}",
         snapshot_status.badge(),
         snapshot.btc_usd,
         power.badge()
