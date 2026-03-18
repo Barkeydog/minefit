@@ -46,11 +46,11 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ## Why minefit?
 
-- Local-first by default. The app models the CPU and GPU on the current machine instead of asking the user to assemble a fake rig.
-- Power-aware ranking. Electricity is part of the default math, including utility-aware California TOU modeling and U.S. state fallback.
-- Live mining data. Rankings are fed by [WhatToMine](https://whattomine.com/coins.json), [Hashrate.no](https://www.hashrate.no/), [MiningPoolStats](https://miningpoolstats.stream/), [Coinbase spot](https://www.coinbase.com/), and discovery catalog enrichment.
-- Multi-surface workflow. The same ranking engine is available as a full TUI, a classic terminal table, and a JSON output path.
-- Realism over hype. Methods include fees, stale/reject drag, uptime assumptions, service costs, eligibility checks, and solo variance.
+- **Local-first by default:** The app models the CPU and GPU on the current machine instead of asking the user to assemble a fake rig.
+- **Power-aware ranking:** Electricity is part of the default math, including utility-aware California TOU modeling and U.S. state fallback.
+- **Live mining data:** Rankings are fed by [WhatToMine](https://whattomine.com/coins.json), [Hashrate.no](https://www.hashrate.no/), [MiningPoolStats](https://miningpoolstats.stream/), [Coinbase spot](https://www.coinbase.com/), and discovery catalog enrichment.
+- **Multi-surface workflow:** The same ranking engine is available as a full TUI, a classic terminal table, and a JSON output path.
+- **Realism over hype:** Methods include fees, stale/reject drag, uptime assumptions, service costs, eligibility checks, and solo variance.
 
 ## What It Models
 
