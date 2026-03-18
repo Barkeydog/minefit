@@ -1,4 +1,4 @@
-# Multi-stage build for llmfit
+# Multi-stage build for minefit
 # Stage 1: Build the Rust binary
 FROM rust:1.88-slim AS builder
 
@@ -20,8 +20,8 @@ COPY llmfit-tui/ ./llmfit-tui/
 COPY llmfit-desktop/ ./llmfit-desktop/
 COPY data/ ./data/
 
-# Build release binary for llmfit-tui
-RUN cargo build --release -p llmfit
+# Build release binary for minefit TUI/CLI
+RUN cargo build --release -p minefit
 
 # Stage 2: Runtime image
 FROM debian:bookworm-slim
@@ -33,15 +33,14 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from builder
-COPY --from=builder /build/target/release/llmfit /usr/local/bin/llmfit
+COPY --from=builder /build/target/release/minefit /usr/local/bin/minefit
 
 # Create a non-root user
-RUN useradd -m -u 1000 llmfit && \
-    chown -R llmfit:llmfit /usr/local/bin/llmfit
+RUN useradd -m -u 1000 minefit && \
+    chown -R minefit:minefit /usr/local/bin/minefit
 
-USER llmfit
+USER minefit
 
-# Set default command to output JSON recommendations
-# In Kubernetes, this will run once per node and log results
-ENTRYPOINT ["/usr/local/bin/llmfit"]
-CMD ["recommend", "--json"]
+# Default to JSON output so the container is useful in automation.
+ENTRYPOINT ["/usr/local/bin/minefit"]
+CMD ["--json", "-n", "25"]
