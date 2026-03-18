@@ -72,12 +72,14 @@ cargo install --path .\llmfit-tui --force
 minefit
 ```
 
-Use the npm wrapper:
+Use the npm package:
 
 ```powershell
 npm install -g minefit
 minefit --cli -n 12
 ```
+
+On supported platforms, the npm install resolves to a prebuilt native binary package. In source checkouts and unsupported environments, the launcher falls back to Cargo.
 
 Useful overrides:
 

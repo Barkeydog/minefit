@@ -24,17 +24,20 @@
   "bin": {
     "minefit": "bin/minefit.js"
   },
+  "optionalDependencies": {
+    "minefit-darwin-arm64": "0.7.4",
+    "minefit-darwin-x64": "0.7.4",
+    "minefit-linux-x64-gnu": "0.7.4",
+    "minefit-win32-x64-msvc": "0.7.4"
+  },
   "files": [
     "bin",
-    "Cargo.toml",
-    "Cargo.lock",
     "README.md",
     "LICENSE",
-    "assets",
-    "data",
-    "llmfit-core",
-    "llmfit-tui",
-    "llmfit-desktop"
+    "assets/icon.svg",
+    "assets/github/logo-dark.svg",
+    "assets/github/logo-light.svg",
+    "scripts/npm-platforms.js"
   ],
   "engines": {
     "node": ">=18"
@@ -48,6 +51,7 @@
     "cli": "cargo run -p minefit --manifest-path ./Cargo.toml -- --cli -n 12",
     "json": "cargo run -p minefit --manifest-path ./Cargo.toml -- --json -n 25",
     "build": "cargo build -p minefit --manifest-path ./Cargo.toml",
-    "pack:check": "npm pack --dry-run"
+    "pack:check": "npm pack --dry-run",
+    "package:platform": "node ./scripts/build-platform-package.js"
   }
 }
