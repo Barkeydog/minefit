@@ -44,7 +44,7 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ![minefit install card](assets/github/install-card.svg)
 
-## Why minefit
+## Why minefit?
 
 - Local-first by default. The app models the CPU and GPU on the current machine instead of asking the user to assemble a fake rig.
 - Power-aware ranking. Electricity is part of the default math, including utility-aware California TOU modeling and U.S. state fallback.
