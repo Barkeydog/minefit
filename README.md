@@ -27,7 +27,7 @@
 
 ```powershell
 npm install -g minefit
-minefit --cli -n 12
+minefit
 ```
 
 <div align="center">
