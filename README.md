@@ -14,6 +14,8 @@
 
 <div align="center">
   <a href="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml"><img src="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/v/minefit?color=cb3837" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/dm/minefit?color=0f766e" alt="npm downloads per month"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f172a.svg" alt="MIT License"></a>
   <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85%2B-f97316.svg" alt="Rust"></a>
   <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
@@ -59,6 +61,15 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ## Quick Start
 
+Install from npm:
+
+```powershell
+npm install -g minefit
+minefit
+```
+
+`npm` is the primary install path. On supported platforms, the package resolves to a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
+
 Run from source:
 
 ```powershell
@@ -71,15 +82,6 @@ Install the local binary:
 cargo install --path .\llmfit-tui --force
 minefit
 ```
-
-Use the npm package:
-
-```powershell
-npm install -g minefit
-minefit --cli -n 12
-```
-
-On supported platforms, the npm install resolves to a prebuilt native binary package. In source checkouts and unsupported environments, the launcher falls back to Cargo.
 
 Useful overrides:
 
@@ -163,3 +165,7 @@ cargo clippy --all-targets --all-features
 ## Status
 
 `minefit` is an actively maintained mining-focused fork with a stable public TUI, CLI, and JSON interface.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Barkeydog/minefit&type=Date)](https://www.star-history.com/#Barkeydog/minefit&Date)

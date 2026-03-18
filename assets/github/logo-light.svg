@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 320" fill="none">
   <defs>
     <linearGradient id="border" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#f59e0b"/>
@@ -10,7 +10,7 @@
     </linearGradient>
   </defs>
 
-  <rect width="1200" height="320" rx="36" fill="#f8fafc"/>
+  <rect width="1320" height="320" rx="36" fill="#f8fafc"/>
   <rect x="40" y="40" width="240" height="240" rx="52" fill="#ffffff" stroke="#dbe4ef" stroke-width="4"/>
   <rect x="78" y="78" width="164" height="164" rx="34" fill="#ffffff" stroke="url(#border)" stroke-width="10"/>
 
@@ -36,9 +36,9 @@
   <circle cx="208" cy="198" r="24" fill="#dcfce7" stroke="#16a34a" stroke-width="4"/>
   <path d="M199 198L206 205L219 189" stroke="#14532d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <text x="338" y="138" fill="#0f172a" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="96" font-weight="800" letter-spacing="1">minefit</text>
+  <text x="338" y="138" fill="#0f172a" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="1">minefit</text>
   <text x="342" y="188" fill="#b45309" font-family="Consolas, Menlo, monospace" font-size="26" font-weight="700">terminal-first crypto mining intelligence</text>
-  <text x="342" y="236" fill="#475569" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28">
+  <text x="342" y="236" fill="#475569" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="26">
     Live mining feeds. Local hardware detection. Power-aware profitability.
   </text>
 </svg>
