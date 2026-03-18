@@ -1,0 +1,50 @@
+{
+  "name": "minefit",
+  "version": "0.7.4",
+  "description": "Live crypto mining comparisons in an llmfit-style terminal UI.",
+  "license": "MIT",
+  "homepage": "https://github.com/Barkeydog/minefit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Barkeydog/minefit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Barkeydog/minefit/issues"
+  },
+  "keywords": [
+    "crypto",
+    "mining",
+    "bitcoin",
+    "tui",
+    "cli"
+  ],
+  "bin": {
+    "minefit": "bin/minefit.js"
+  },
+  "files": [
+    "bin",
+    "Cargo.toml",
+    "Cargo.lock",
+    "README.md",
+    "LICENSE",
+    "assets",
+    "data",
+    "llmfit-core",
+    "llmfit-tui",
+    "llmfit-desktop"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "preferGlobal": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "cargo run -p minefit --manifest-path ./Cargo.toml --",
+    "cli": "cargo run -p minefit --manifest-path ./Cargo.toml -- --cli -n 12",
+    "json": "cargo run -p minefit --manifest-path ./Cargo.toml -- --json -n 25",
+    "build": "cargo build -p minefit --manifest-path ./Cargo.toml",
+    "pack:check": "npm pack --dry-run"
+  }
+}

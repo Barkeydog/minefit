@@ -17,7 +17,7 @@
 From the repo root:
 
 ```powershell
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml --
+cargo run -p minefit --manifest-path .\Cargo.toml --
 ```
 
 `minefit` uses your detected local GPU and CPU only as the default comparison scope.
@@ -25,11 +25,21 @@ cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml --
 Common flags:
 
 ```powershell
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml -- --cli -n 12
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml -- --json -n 10
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml -- --power-plan pge-e-tou-c
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml -- --location WA
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml -- --electricity 0.16
+cargo run -p minefit --manifest-path .\Cargo.toml -- --cli -n 12
+cargo run -p minefit --manifest-path .\Cargo.toml -- --json -n 10
+cargo run -p minefit --manifest-path .\Cargo.toml -- --power-plan pge-e-tou-c
+cargo run -p minefit --manifest-path .\Cargo.toml -- --location WA
+cargo run -p minefit --manifest-path .\Cargo.toml -- --electricity 0.16
 ```
 
 Use `minefit --help` after installing the binary for the full flag list.
+
+## npm Package
+
+`minefit` is also packaged for npm. The npm package wraps the Rust source and invokes Cargo locally, so a working Rust toolchain is still required.
+
+```powershell
+npm install -g minefit
+minefit --cli -n 12
+npx minefit --json -n 20
+```
