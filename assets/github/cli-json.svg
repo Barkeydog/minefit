@@ -1,77 +1,76 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 760" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 920" fill="none">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fbfdff"/>
-      <stop offset="100%" stop-color="#eef4fb"/>
-    </linearGradient>
-    <linearGradient id="term" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0b1220"/>
-      <stop offset="100%" stop-color="#111b2d"/>
+      <stop offset="0%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#edf3f9"/>
     </linearGradient>
   </defs>
 
-  <rect width="1600" height="760" fill="url(#bg)"/>
+  <rect width="1600" height="920" fill="url(#bg)"/>
 
-  <rect x="70" y="70" width="700" height="620" rx="28" fill="url(#term)" stroke="#20314a" stroke-width="2"/>
-  <rect x="70" y="70" width="700" height="52" rx="28" fill="#08111d"/>
-  <circle cx="110" cy="96" r="8" fill="#ef4444"/>
-  <circle cx="138" cy="96" r="8" fill="#f59e0b"/>
-  <circle cx="166" cy="96" r="8" fill="#22c55e"/>
-  <text x="206" y="103" fill="#dbe4ef" font-family="Consolas, Menlo, monospace" font-size="22">minefit --cli -n 8</text>
+  <rect x="70" y="72" width="1460" height="776" rx="28" fill="#ffffff" stroke="#d7e0ea" stroke-width="2"/>
+  <rect x="70" y="72" width="1460" height="52" rx="28" fill="#f8fafc"/>
+  <circle cx="110" cy="98" r="8" fill="#cbd5e1"/>
+  <circle cx="138" cy="98" r="8" fill="#cbd5e1"/>
+  <circle cx="166" cy="98" r="8" fill="#cbd5e1"/>
+  <text x="206" y="105" fill="#334155" font-family="Consolas, Menlo, monospace" font-size="22">Recorded JSON snapshot from `minefit --json -n 3` on the local test machine</text>
 
-  <text x="100" y="158" fill="#f59e0b" font-family="Consolas, Menlo, monospace" font-size="20">minefit | snapshot live now | BTC $72,196.58 | power PG&amp;E TOU-C $0.38/kWh</text>
-  <text x="100" y="197" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Coin           Algo         Rig        Method              Net/day</text>
-  <text x="100" y="230" fill="#475569" font-family="Consolas, Menlo, monospace" font-size="18">----------------------------------------------------------------</text>
-  <text x="100" y="268" fill="#e2e8f0" font-family="Consolas, Menlo, monospace" font-size="18">VEIL (Vei)     SHA256       RTX 4060   SHA256 Pool Prime   $12.96</text>
-  <text x="100" y="301" fill="#e2e8f0" font-family="Consolas, Menlo, monospace" font-size="18">XMR (Monero)   RandomX      i7-14700F  CPU Pool Steady     $1.82</text>
-  <text x="100" y="334" fill="#e2e8f0" font-family="Consolas, Menlo, monospace" font-size="18">BTC (Bitcoin)  SHA256       RTX 4060   SHA256 Solo Pool   -$0.79</text>
-  <text x="100" y="367" fill="#e2e8f0" font-family="Consolas, Menlo, monospace" font-size="18">DNX (Dynex)    DynexSolve   RTX 4060   Turbo Pool          $2.34</text>
-  <text x="100" y="400" fill="#e2e8f0" font-family="Consolas, Menlo, monospace" font-size="18">QRL (Quantum)  RandomX      i7-14700F  CPU Eco Pool        $0.94</text>
-  <text x="100" y="462" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">System: RTX 4060 8GB + Intel Core i7-14700F</text>
-  <text x="100" y="495" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Power source: PG&amp;E E-TOU-C, winter above-baseline schedule</text>
-  <text x="100" y="528" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Modes: TUI, classic table, structured JSON</text>
-  <rect x="100" y="570" width="168" height="32" rx="16" fill="#17311f"/>
-  <text x="132" y="591" fill="#4ade80" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="16" font-weight="700">Local hardware</text>
-  <rect x="282" y="570" width="140" height="32" rx="16" fill="#1e293b"/>
-  <text x="319" y="591" fill="#cbd5e1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="16" font-weight="700">40+ methods</text>
-  <rect x="436" y="570" width="190" height="32" rx="16" fill="#3b1d08"/>
-  <text x="468" y="591" fill="#fbbf24" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="16" font-weight="700">Power-aware ranking</text>
+  <text x="106" y="170" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">{</text>
+  <text x="136" y="204" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"catalog_asset_count"</text>
+  <text x="314" y="204" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="334" y="204" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">12291,</text>
+  <text x="136" y="238" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"power"</text>
+  <text x="202" y="238" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="222" y="238" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">{</text>
+  <text x="170" y="272" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"effective_rate_hint_usd_kwh"</text>
+  <text x="470" y="272" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="490" y="272" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">0.37625,</text>
+  <text x="170" y="306" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"location_profile"</text>
+  <text x="352" y="306" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="372" y="306" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">{</text>
+  <text x="204" y="340" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"cents_per_kwh"</text>
+  <text x="364" y="340" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="384" y="340" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">34.71,</text>
+  <text x="204" y="374" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"city"</text>
+  <text x="266" y="374" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="286" y="374" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"Hayward",</text>
+  <text x="204" y="408" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"region_code"</text>
+  <text x="336" y="408" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="356" y="408" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"CA",</text>
+  <text x="204" y="442" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"source"</text>
+  <text x="292" y="442" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="312" y="442" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"EIA state average retail residential electricity price",</text>
+  <text x="204" y="476" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"usd_per_kwh"</text>
+  <text x="336" y="476" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="356" y="476" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">0.3471</text>
+  <text x="170" y="510" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">},</text>
+  <text x="170" y="544" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"plan_label"</text>
+  <text x="294" y="544" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="314" y="544" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"PG&amp;E E-TOU-C",</text>
+  <text x="170" y="578" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"season_label"</text>
+  <text x="320" y="578" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="340" y="578" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"Winter"</text>
+  <text x="136" y="612" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">},</text>
+  <text x="136" y="646" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rankable_coin_count"</text>
+  <text x="338" y="646" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="358" y="646" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">12415,</text>
+  <text x="136" y="680" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rig_scope"</text>
+  <text x="252" y="680" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="272" y="680" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"Local CPU + GPU",</text>
+  <text x="136" y="714" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rows"</text>
+  <text x="202" y="714" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
+  <text x="222" y="714" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">[ ... ]</text>
+  <text x="106" y="748" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">}</text>
 
-  <rect x="830" y="70" width="700" height="620" rx="28" fill="#ffffff" stroke="#d7e0ea" stroke-width="2"/>
-  <rect x="830" y="70" width="700" height="52" rx="28" fill="#f8fafc"/>
-  <circle cx="870" cy="96" r="8" fill="#cbd5e1"/>
-  <circle cx="898" cy="96" r="8" fill="#cbd5e1"/>
-  <circle cx="926" cy="96" r="8" fill="#cbd5e1"/>
-  <text x="966" y="103" fill="#334155" font-family="Consolas, Menlo, monospace" font-size="22">minefit --json -n 3</text>
+  <rect x="912" y="188" width="550" height="476" rx="24" fill="#0b1220"/>
+  <text x="946" y="232" fill="#f8fafc" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="28" font-weight="700">What this snapshot confirms</text>
+  <text x="946" y="286" fill="#cbd5e1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20">• Power defaults are tied to the detected local context.</text>
+  <text x="946" y="326" fill="#cbd5e1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20">• The app is operating in local CPU + GPU mode.</text>
+  <text x="946" y="366" fill="#cbd5e1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20">• The snapshot includes both discovery breadth and rankable rows.</text>
+  <text x="946" y="406" fill="#cbd5e1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="20">• JSON output is ready for scripting and reporting flows.</text>
 
-  <text x="860" y="160" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">{</text>
-  <text x="890" y="196" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rig_scope"</text>
-  <text x="1008" y="196" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="1028" y="196" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"Local CPU + GPU"</text>
-  <text x="890" y="232" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rankable_coin_count"</text>
-  <text x="1070" y="232" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="1090" y="232" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">12415</text>
-  <text x="890" y="268" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"power"</text>
-  <text x="957" y="268" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="978" y="268" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">{ ... }</text>
-  <text x="890" y="304" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"rows"</text>
-  <text x="948" y="304" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="968" y="304" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">[</text>
-  <text x="922" y="340" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">{</text>
-  <text x="954" y="340" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"coin"</text>
-  <text x="1020" y="340" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="1040" y="340" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"VEIL"</text>
-  <text x="954" y="376" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"method"</text>
-  <text x="1036" y="376" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="1056" y="376" fill="#166534" font-family="Consolas, Menlo, monospace" font-size="18">"SHA256 Pool Prime"</text>
-  <text x="954" y="412" fill="#0369a1" font-family="Consolas, Menlo, monospace" font-size="18">"net_usd_day"</text>
-  <text x="1076" y="412" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">:</text>
-  <text x="1096" y="412" fill="#7c3aed" font-family="Consolas, Menlo, monospace" font-size="18">12.9631</text>
-  <text x="922" y="448" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">},</text>
-  <text x="922" y="484" fill="#64748b" font-family="Consolas, Menlo, monospace" font-size="18">{ ... }</text>
-  <text x="968" y="520" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">]</text>
-  <text x="860" y="556" fill="#0f172a" font-family="Consolas, Menlo, monospace" font-size="18">}</text>
-
-  <text x="860" y="610" fill="#334155" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="22" font-weight="700">Automatable output for scripts and reporting</text>
-  <text x="860" y="646" fill="#64748b" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="18">Use the CLI for quick scans, the TUI for exploration, and JSON when you want to pipe data into alerts, dashboards, or custom models.</text>
+  <rect x="946" y="456" width="484" height="2" fill="#f59e0b"/>
+  <text x="946" y="510" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Snapshot source date: March 18, 2026</text>
+  <text x="946" y="542" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Local system: Intel Core i7-14700F + NVIDIA RTX 4060 8GB</text>
+  <text x="946" y="574" fill="#94a3b8" font-family="Consolas, Menlo, monospace" font-size="18">Power plan: PG&amp;E E-TOU-C</text>
 </svg>
