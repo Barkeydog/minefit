@@ -1,14 +1,20 @@
-pub mod fit;
+pub mod electricity;
 pub mod hardware;
-pub mod models;
-pub mod plan;
-pub mod providers;
+pub mod mining;
+pub mod rig_profiles;
 
-pub use fit::{FitLevel, InferenceRuntime, ModelFit, RunMode, ScoreComponents, SortColumn};
-pub use hardware::{GpuBackend, SystemSpecs};
-pub use models::{Capability, LlmModel, ModelDatabase, ModelFormat, UseCase};
-pub use plan::{
-    HardwareEstimate, PathEstimate, PlanCurrentStatus, PlanEstimate, PlanRequest, PlanRunPath,
-    UpgradeDelta, estimate_model_plan, normalize_quant, resolve_model_selector,
+pub use electricity::{
+    ElectricityMode, ElectricityProfile, PowerContext, PowerCostEstimate, PowerPlanId,
+    expand_power_context_options, fallback_power_context, resolve_electricity_profile,
+    resolve_power_context,
 };
-pub use providers::{LlamaCppProvider, MlxProvider, ModelProvider, OllamaProvider};
+pub use hardware::{GpuBackend, SystemSpecs, parse_memory_size};
+pub use mining::{
+    FitLevel, METHODS, MiningCoin, MiningMethod, MiningRow, MiningSnapshot, MiningStrategy,
+    SortColumn, build_rankings, build_rankings_for_rigs, sort_rankings,
+};
+pub use rig_profiles::{
+    AlgorithmBenchmark, AlgorithmRule, MiningRigProfile, RigKind, algorithm_rule,
+    available_rig_profiles, describe_rig_scope, describe_rig_scope_summary,
+    resolve_default_comparison_rigs, resolve_detected_rig_profiles, resolve_rig_profile,
+};

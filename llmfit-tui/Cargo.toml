@@ -1,18 +1,18 @@
 [package]
-name = "llmfit"
+name = "minefit"
 version.workspace = true
 edition = "2024"
 authors = ["Alex Jones <alex@example.com>"]
-description = "Right-size LLM models to your system hardware. Interactive TUI and CLI to match models against available RAM, CPU, and GPU."
+description = "Compare live mineable coins and mining methods in an llmfit-style TUI."
 license = "MIT"
 repository = "https://github.com/AlexsJones/llmfit"
 homepage = "https://github.com/AlexsJones/llmfit"
-readme = "../README.md"
-keywords = ["llm", "tui", "hardware", "inference", "models"]
+readme = "README.md"
+keywords = ["crypto", "mining", "tui", "hardware", "coins"]
 categories = ["command-line-utilities"]
 
 [[bin]]
-name = "llmfit"
+name = "minefit"
 path = "src/main.rs"
 
 [dependencies]

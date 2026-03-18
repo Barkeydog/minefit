@@ -47,7 +47,7 @@ impl Theme {
         }
     }
 
-    /// Path to the config file: ~/.config/llmfit/theme
+    /// Path to the config file: ~/.config/minefit/theme
     fn config_path() -> Option<PathBuf> {
         let home = std::env::var("HOME")
             .or_else(|_| std::env::var("USERPROFILE"))
@@ -55,7 +55,7 @@ impl Theme {
         Some(
             PathBuf::from(home)
                 .join(".config")
-                .join("llmfit")
+                .join("minefit")
                 .join("theme"),
         )
     }
@@ -125,6 +125,7 @@ pub struct ThemeColors {
     pub mode_gpu: Color,
     pub mode_moe: Color,
     pub mode_offload: Color,
+    #[allow(dead_code)]
     pub mode_cpu: Color,
 
     // Status bar
