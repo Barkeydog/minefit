@@ -34,12 +34,7 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ## Quick Start
 
-```powershell
-npm install -g minefit
-minefit
-```
-
-`npm` is the primary install path. On supported platforms, the package resolves to a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
+![minefit install card](assets/github/install-card.svg)
 
 ## Why minefit
 
@@ -68,7 +63,7 @@ minefit
 - Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
 - Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
-## From Source
+## Developer Setup
 
 Run from source:
 
@@ -126,7 +121,7 @@ llmfit-core/      Core mining, power, hardware, cache, and ranking logic
 llmfit-tui/       Terminal UI, CLI, persistence, and app shell
 llmfit-desktop/   Experimental desktop shell
 bin/              npm wrapper entrypoint
-assets/github/    README logos and screenshot assets
+assets/github/    README logos and presentation assets
 .github/          CI, release automation, and contribution templates
 ```
 
