@@ -122,43 +122,4 @@ This means a row can appear with a negative net return if it is technically poss
 
 When a source is unavailable or rate-limited, cached snapshots are used so startup stays fast and the app degrades cleanly instead of failing hard.
 
-## Repository Layout
-
-```text
-llmfit-core/      Core mining, power, hardware, cache, and ranking logic
-llmfit-tui/       Terminal UI, CLI, persistence, and app shell
-llmfit-desktop/   Experimental desktop shell
-bin/              npm wrapper entrypoint
-assets/github/    README logos and presentation assets
-.github/          CI, release automation, and contribution templates
-```
-
-## Development
-
-Build:
-
-```powershell
-cargo build -p minefit --manifest-path .\Cargo.toml
-```
-
-Test:
-
-```powershell
-cargo test --manifest-path .\Cargo.toml
-```
-
-Format:
-
-```powershell
-cargo fmt --all
-```
-
-Lint:
-
-```powershell
-cargo clippy --all-targets --all-features
-```
-
-## Star History
-
 [![Star History Chart](https://api.star-history.com/svg?repos=Barkeydog/minefit&type=Date)](https://www.star-history.com/#Barkeydog/minefit&Date)
