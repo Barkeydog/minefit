@@ -36,7 +36,7 @@
 The goal is operational usefulness. `minefit` is built to answer a narrower question than a generic portfolio tracker: *what can this machine mine, what does power do to the economics, and what method looks best right now?*
 
 > [!NOTE]
-> The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining rows against that hardware automatically.
+> The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining setups against that hardware automatically.
 
 ---
 
