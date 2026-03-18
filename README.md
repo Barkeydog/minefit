@@ -36,22 +36,6 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ![minefit install card](assets/github/install-card.svg)
 
-`npm` is the primary install path. On supported platforms, `minefit` installs as a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
-
-If you just want to install and run it:
-
-```powershell
-npm install -g minefit
-minefit
-```
-
-For a quick non-TUI snapshot:
-
-```powershell
-minefit --cli -n 12
-minefit --json -n 25
-```
-
 ## Why minefit
 
 - Local-first by default. The app models the CPU and GPU on the current machine instead of asking the user to assemble a fake rig.
