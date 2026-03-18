@@ -2,13 +2,13 @@
 name = "llmfit-core"
 version.workspace = true
 edition = "2024"
-authors = ["Alex Jones <alex@example.com>"]
-description = "Core library for llmfit — hardware detection, model fitting, and provider integration"
+authors = ["Barkeydog"]
+description = "Core library for minefit: hardware detection, mining feeds, profitability scoring, and power modeling."
 license = "MIT"
 repository = "https://github.com/Barkeydog/minefit"
 homepage = "https://github.com/Barkeydog/minefit"
 readme = "../README.md"
-keywords = ["llm", "hardware", "inference", "models", "gpu"]
+keywords = ["crypto", "mining", "hardware", "profitability", "power"]
 categories = ["hardware-support"]
 
 [dependencies]

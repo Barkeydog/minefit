@@ -2,8 +2,8 @@
 name = "minefit"
 version.workspace = true
 edition = "2024"
-authors = ["Alex Jones <alex@example.com>"]
-description = "Compare live mineable coins and mining methods in an llmfit-style TUI."
+authors = ["Barkeydog"]
+description = "Terminal UI for comparing live mineable coins, local rig economics, and power-aware mining methods."
 license = "MIT"
 repository = "https://github.com/Barkeydog/minefit"
 homepage = "https://github.com/Barkeydog/minefit"

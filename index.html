@@ -1,12 +1,110 @@
-<html>
+<!doctype html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>llmfit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>minefit</title>
+  <meta name="description" content="minefit is a terminal-first crypto mining comparison tool with live feeds, hardware-aware ranking, and power-aware profitability modeling.">
+  <style>
+    :root {
+      --bg: #09111f;
+      --panel: #101b2e;
+      --text: #e5edf8;
+      --muted: #94a6c1;
+      --accent: #49c2a2;
+      --line: #24344f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(73,194,162,0.16), transparent 30%),
+        linear-gradient(180deg, #0a1324 0%, var(--bg) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    main {
+      width: min(920px, 100%);
+      background: rgba(16, 27, 46, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 6vw, 56px);
+      line-height: 1;
+    }
+    p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 0 0 18px;
+    }
+    code, pre {
+      font-family: Consolas, "SFMono-Regular", monospace;
+    }
+    pre {
+      margin: 20px 0 0;
+      padding: 16px;
+      border-radius: 12px;
+      background: #08101d;
+      border: 1px solid var(--line);
+      overflow: auto;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    .button {
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0c1628;
+    }
+    .button.primary {
+      background: var(--accent);
+      color: #061014;
+      border-color: transparent;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
-  <h1>llmfit</h1>
-  <p>Match LLM models to your hardware.</p>
-  <pre>curl -fsSL https://llmfit.axjns.dev/install.sh | sh</pre>
-  <p><a href="https://github.com/AlexsJones/llmfit">GitHub</a></p>
+  <main>
+    <div class="eyebrow">minefit</div>
+    <h1>Live mining comparisons for the rig you actually have.</h1>
+    <p>
+      minefit is a terminal-first crypto mining comparison tool with live mining feeds,
+      local hardware detection, electricity-rate modeling, and method-aware ranking.
+    </p>
+    <p>
+      The primary project home is GitHub. Install locally, run the TUI, or use JSON output for scripting.
+    </p>
+    <div class="actions">
+      <a class="button primary" href="https://github.com/Barkeydog/minefit">View Repository</a>
+      <a class="button" href="https://github.com/Barkeydog/minefit#readme">Read Documentation</a>
+    </div>
+    <pre>cargo install --path ./llmfit-tui --force
+minefit</pre>
+  </main>
 </body>
 </html>

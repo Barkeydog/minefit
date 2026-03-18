@@ -1,14 +1,14 @@
 # minefit
 
-Mining coin and method comparison in the terminal, built from the `llmfit` TUI codebase.
+Terminal UI for comparing live mineable coins, local rig economics, and power-aware mining strategies.
 
-The live snapshot now combines WhatToMine, Hashrate.no, and MiningPoolStats so the default feed covers 100+ tier-one rankable mining coins on current public data, including BTC. It also carries a discovery catalog that prefers CoinPaprika and falls back to CoinGecko, turning the long tail into inferred `Discovery Proxy` rows so 10k+ assets remain rankable. Ranking defaults to your detected local CPU and GPU only.
+## Capabilities
 
-This build also adds:
-- 40+ modeled techniques across pool, marketplace, hosted, eco, windowed, and solo paths.
-- Persistent sort/filter/power/layout state in `~/.config/minefit/state.json`.
-- Warm-start cache and archived startup snapshots in `~/.config/minefit/cache/`.
-- Software SHA256 benchmarks so BTC can appear on CPU and GPU as a theoretical, usually uneconomic route.
+- Live mining coverage from WhatToMine, Hashrate.no, MiningPoolStats, and Coinbase spot pricing.
+- Discovery fallback so thousands of assets remain sortable through inferred `Discovery Proxy` rows.
+- Local CPU and GPU detection with hardware-aware benchmarks and eligibility checks.
+- Persistent state in `~/.config/minefit/state.json`.
+- Cache-backed startup snapshots under `~/.config/minefit/cache/`.
 
 ## Usage
 
@@ -20,10 +20,10 @@ minefit --location WA
 minefit --electricity 0.16
 ```
 
-## Local Development
+## Development
 
 From the repository root:
 
 ```powershell
-cargo run -p minefit --manifest-path .\minefit-tui\Cargo.toml --
+cargo run -p minefit --manifest-path .\Cargo.toml --
 ```

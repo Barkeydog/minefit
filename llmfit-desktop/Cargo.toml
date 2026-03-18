@@ -2,8 +2,8 @@
 name = "llmfit-desktop"
 version.workspace = true
 edition = "2024"
-authors = ["axjns"]
-description = "macOS desktop application for llmfit — visual LLM hardware fitting"
+authors = ["Barkeydog"]
+description = "Experimental desktop shell for minefit."
 license = "MIT"
 repository = "https://github.com/Barkeydog/minefit"
 default-run = "llmfit-desktop"

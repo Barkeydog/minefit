@@ -1,58 +1,145 @@
 # minefit
 
-`minefit` is a local fork of the `llmfit` TUI, repurposed for live crypto-mining comparisons.
+[![CI](https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg)](https://github.com/Barkeydog/minefit/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-0f172a.svg)](./LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.85%2B-f97316.svg)](https://www.rust-lang.org/)
 
-## What It Models
+`minefit` is a terminal-first mining comparison tool for evaluating live coin opportunities against the hardware that is actually on the current machine.
 
-- Live tier-one mining discovery from WhatToMine, Hashrate.no, and MiningPoolStats, with BTC spot from Coinbase. Current public snapshots are now clearing 100+ rankable mining coins and include BTC again.
-- A bulk discovery catalog that prefers CoinPaprika and falls back to CoinGecko so 10k+ assets remain rankable through inferred `Discovery Proxy` rows even when enrichment feeds are rate-limited.
-- Utility-specific residential tariffs for supported California utilities, with EIA state-average fallback.
-- Real rig profiles for selected GPUs, ASICs, and CPUs, including tuned hashrate, watt draw, and reject-rate assumptions.
-- 40+ modeled mining techniques across pool, marketplace, hosted, eco, windowed, and solo strategies.
-- Pool-specific fee, stale-share, duty-cycle, tuning, and uptime drag.
-- Coin eligibility checks for VRAM/DAG pressure, backend/vendor fit, and benchmark coverage.
-- Solo-mining variance, including zero-block odds and p50/p90 monthly outcomes.
-- Liquidity-aware cashflow caps so low-volume coins do not outrank deep markets on impossible exit assumptions.
-- Persistent local state for power context, filters, sort mode, and last-viewed layout.
-- Snapshot caching plus timestamped startup archives under `~/.config/minefit/cache` so boot is faster and feed failures can fall back cleanly.
-- Software SHA256 benchmarks for CPU and GPU so BTC can show on the current machine as a theoretical, usually uneconomic path.
+It combines local CPU/GPU detection, live mining feeds, electricity-rate estimation, and method-level profitability modeling into a single TUI, CLI, and JSON workflow.
 
-## Run
+## Highlights
 
-From the repo root:
+- Local-first comparison scope using the detected CPU and GPU on the current system.
+- Live mining coverage from WhatToMine, Hashrate.no, MiningPoolStats, and Coinbase spot pricing.
+- Discovery catalog fallback that keeps thousands of assets rankable even when a market feed is rate-limited.
+- Utility-aware electricity modeling with California tariff support and U.S. state fallback.
+- GPU, CPU, and ASIC benchmark profiles with hashrate, power, reject-rate, and tuning assumptions.
+- 40+ modeled techniques spanning pool, solo, hosted, opportunistic, and efficiency-focused strategies.
+- Eligibility checks for algorithm support, VRAM pressure, backend fit, and benchmark coverage.
+- Solo variance modeling with zero-block odds and p50/p90 monthly outcomes.
+- Persistent state for filters, sorting, power context, and last-viewed layout.
+- Cache-backed startup snapshots for faster boot and graceful degradation when feeds fail.
+
+## Quick Start
+
+Run from source:
 
 ```powershell
 cargo run -p minefit --manifest-path .\Cargo.toml --
 ```
 
-`minefit` uses your detected local GPU and CPU only as the default comparison scope.
-
-State and cache:
-
-```text
-~/.config/minefit/state.json
-~/.config/minefit/cache/latest.json
-~/.config/minefit/cache/snapshots/
-```
-
-Common flags:
+Install the local binary:
 
 ```powershell
-cargo run -p minefit --manifest-path .\Cargo.toml -- --cli -n 12
-cargo run -p minefit --manifest-path .\Cargo.toml -- --json -n 10
-cargo run -p minefit --manifest-path .\Cargo.toml -- --power-plan pge-e-tou-c
-cargo run -p minefit --manifest-path .\Cargo.toml -- --location WA
-cargo run -p minefit --manifest-path .\Cargo.toml -- --electricity 0.16
+cargo install --path .\llmfit-tui --force
+minefit
 ```
 
-Use `minefit --help` after installing the binary for the full flag list.
-
-## npm Package
-
-`minefit` is also packaged for npm. The npm package wraps the Rust source and invokes Cargo locally, so a working Rust toolchain is still required.
+Use the npm wrapper:
 
 ```powershell
 npm install -g minefit
 minefit --cli -n 12
-npx minefit --json -n 20
 ```
+
+## Modes
+
+Interactive TUI:
+
+```powershell
+minefit
+```
+
+Classic CLI table:
+
+```powershell
+minefit --cli -n 12
+```
+
+Structured JSON:
+
+```powershell
+minefit --json -n 25
+```
+
+Useful overrides:
+
+```powershell
+minefit --power-plan pge-e-tou-c
+minefit --location WA
+minefit --electricity 0.16
+minefit --memory 24G
+```
+
+## What The Rankings Mean
+
+`minefit` mixes two classes of rows:
+
+- Tier-one mining rows backed by real mining telemetry and validated algorithm benchmarks.
+- Discovery rows backed by inferred `Discovery Proxy` economics so the long tail stays sortable instead of disappearing.
+
+The ranking model applies:
+
+- gross revenue
+- power cost
+- fees and stale-share drag
+- service drag for hosted strategies
+- liquidity penalties
+- trend and volatility adjustments
+- fit and benchmark confidence
+
+The result is meant to be operationally useful, not just theoretically profitable.
+
+## Data Model Notes
+
+- BTC can appear on CPU and GPU through software SHA256 paths, but those rows are usually economically negative.
+- Discovery rows are intentionally penalized relative to validated mining rows.
+- Electricity defaults to an estimated local context from your detected location and can be overridden explicitly.
+- Snapshot cache and state live under `~/.config/minefit/`.
+
+## Repository Layout
+
+```text
+llmfit-core/      Core mining, power, hardware, and ranking logic
+llmfit-tui/       Terminal UI, CLI, persistence, and app shell
+llmfit-desktop/   Experimental desktop shell
+bin/              npm wrapper entrypoint
+.github/          CI, release automation, templates
+```
+
+## Development
+
+Build:
+
+```powershell
+cargo build -p minefit --manifest-path .\Cargo.toml
+```
+
+Test:
+
+```powershell
+cargo test --manifest-path .\Cargo.toml
+```
+
+Format:
+
+```powershell
+cargo fmt --all
+```
+
+Lint:
+
+```powershell
+cargo clippy --all-targets --all-features
+```
+
+## Documentation
+
+- [API.md](./API.md)
+- [CONTRIBUTING.md](./CONTRIBUTING.md)
+- [SECURITY.md](./SECURITY.md)
+
+## Project Status
+
+`minefit` is an actively maintained mining-focused fork with a stable public TUI, CLI, and JSON interface.
