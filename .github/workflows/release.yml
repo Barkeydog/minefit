@@ -180,7 +180,7 @@ jobs:
           find npm-artifacts -mindepth 2 -maxdepth 2 -type f -name package.json -print0 | while IFS= read -r -d '' package_json; do
             dir="$(dirname "${package_json}")"
             echo "Publishing ${dir}"
-            npm publish "${dir}" --access public
+            npm publish "./${dir}" --access public
           done
 
       - name: Publish top-level npm package
