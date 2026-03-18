@@ -30,9 +30,11 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ---
 
-## Live Snapshot
+## Live TUI Screenshots
 
-<img src="assets/github/tui-overview.svg" alt="minefit recorded CLI snapshot" width="100%">
+Captured from a real `minefit` session on the local test machine on March 18, 2026.
+
+<img src="assets/github/tui-live-stage.png" alt="minefit live TUI screenshot on an ultrawide terminal" width="100%">
 
 ## Why minefit
 
@@ -50,7 +52,7 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 | `minefit --cli -n 12` | Fast table output for shell use, SSH sessions, and quick spot checks |
 | `minefit --json -n 25` | Structured output for scripts, automation, reporting, and downstream analysis |
 
-<img src="assets/github/cli-json.svg" alt="minefit recorded JSON snapshot" width="100%">
+<img src="assets/github/tui-live-detail.png" alt="minefit live TUI screenshot on a standard-width terminal" width="100%">
 
 ## What It Models
 
