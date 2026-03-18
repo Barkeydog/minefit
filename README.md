@@ -21,19 +21,6 @@
   <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
 </div>
 
-<div align="center">
-  <h4>Install</h4>
-</div>
-
-```powershell
-npm install -g minefit
-minefit
-```
-
-<div align="center">
-  <sub><strong>npm</strong> is the primary install path and resolves to a prebuilt native binary on supported platforms.</sub>
-</div>
-
 <br>
 
 `minefit` is a mining-focused fork of `llmfit` that turns a fast terminal UI into a live mining decision surface. It detects the local CPU and GPU, estimates electricity from the current location, pulls live coin and market data, and ranks coins and methods against real power drag instead of fantasy hashrates.
@@ -44,6 +31,15 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 > The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining rows against that hardware automatically.
 
 ---
+
+## Quick Start
+
+```powershell
+npm install -g minefit
+minefit
+```
+
+`npm` is the primary install path. On supported platforms, the package resolves to a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
 
 ## Why minefit
 
@@ -72,16 +68,7 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 - Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
 - Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
-## Quick Start
-
-Install from npm:
-
-```powershell
-npm install -g minefit
-minefit
-```
-
-`npm` is the primary install path. On supported platforms, the package resolves to a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
+## From Source
 
 Run from source:
 
