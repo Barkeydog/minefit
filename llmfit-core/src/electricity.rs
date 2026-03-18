@@ -8,14 +8,14 @@ const EIA_STATE_RATE_URL: &str =
     "https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_5_6_a";
 const IPWHOIS_URL: &str = "https://ipwho.is/";
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ElectricityMode {
     Estimated,
     Manual,
     Fallback,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ElectricityProfile {
     pub usd_per_kwh: f64,
     pub cents_per_kwh: f64,
@@ -31,7 +31,7 @@ pub struct ElectricityProfile {
     pub note: Option<String>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PowerPlanId {
     StateAverage,
     Manual,
@@ -52,7 +52,7 @@ enum CaUtility {
     Sdge,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PowerContext {
     pub location_profile: ElectricityProfile,
     pub plan_id: PowerPlanId,
@@ -63,7 +63,7 @@ pub struct PowerContext {
     pub season_label: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PowerCostEstimate {
     pub daily_cost_usd: f64,
     pub monthly_cost_usd: f64,

@@ -258,6 +258,17 @@ pub fn algorithm_rule(algorithm: &str) -> AlgorithmRule {
             tuning_note: "Legacy CPU-oriented CryptoNight family workload where cache hit rate and pages matter.",
             backend_note: "Backend path: CPU miners with CryptoNightTurtle support and large-page tuning.",
         },
+        "yespower" | "yescrypt" | "yescryptr16" | "minotaurx" | "randomarq" | "cryptonightupx"
+        | "argon2idchukwa" => AlgorithmRule {
+            algorithm: "CPU-first alt",
+            min_vram_gb: 0.0,
+            supports_nvidia: false,
+            supports_amd: false,
+            supports_asic: false,
+            supports_cpu: true,
+            tuning_note: "CPU-first alt algorithm where cache behavior, memory timings, and thread affinity matter more than raw clocks.",
+            backend_note: "Backend path: cpuminer-opt, SRBMiner, or algorithm-specific CPU miner builds.",
+        },
         "verthash" => AlgorithmRule {
             algorithm: "Verthash",
             min_vram_gb: 2.0,
@@ -338,7 +349,17 @@ pub fn algorithm_rule(algorithm: &str) -> AlgorithmRule {
             tuning_note: "Modern niche algo; miner support and clocks vary more than on mainstream chains.",
             backend_note: "Backend path: exact CUDA/OpenCL/Vulkan support depends on miner release cadence.",
         },
-        "sha256" | "scrypt" | "kheavyhash" => AlgorithmRule {
+        "sha256" => AlgorithmRule {
+            algorithm: "SHA256",
+            min_vram_gb: 0.0,
+            supports_nvidia: true,
+            supports_amd: true,
+            supports_asic: true,
+            supports_cpu: true,
+            tuning_note: "SHA256 is technically mineable on CPU and GPU, but those software paths are massively uncompetitive against ASICs in 2026.",
+            backend_note: "Backend path: CPU/GPU SHA256 miners exist, but the realistic production path is still ASIC firmware or a specialized pool stack.",
+        },
+        "scrypt" | "kheavyhash" => AlgorithmRule {
             algorithm: "ASIC-first",
             min_vram_gb: 0.0,
             supports_nvidia: false,
@@ -413,6 +434,7 @@ fn rtx_4060_profile() -> MiningRigProfile {
         tuning_summary: "Medium tuned profile using Rigel/lolMiner-style memory OC and low core locks.",
         fallback_power_watts: 90.0,
         benchmarks: vec![
+            benchmark("SHA256", gh(1.85), 88.0, 0.20, "cgminer CUDA proxy estimate", "software SHA256 theoretical 4060 path"),
             benchmark("Ethash", mh(33.22), 72.0, 0.45, "lolMiner", "1005 core lock, +2500 mem"),
             benchmark("Etchash", mh(33.42), 72.0, 0.45, "lolMiner", "1005 core lock, +2500 mem"),
             benchmark("Autolykos", mh(68.67), 42.0, 0.30, "Rigel", "memory-lean low watt profile"),
@@ -448,6 +470,7 @@ fn rtx_4090_profile() -> MiningRigProfile {
         tuning_summary: "High-end Ada profile with capped power limits and large memory offsets.",
         fallback_power_watts: 280.0,
         benchmarks: vec![
+            benchmark("SHA256", gh(9.80), 285.0, 0.20, "cgminer CUDA proxy estimate", "software SHA256 theoretical 4090 path"),
             benchmark("Ethash", mh(127.0), 249.0, 0.40, "lolMiner", "+2500 mem, 250W PL"),
             benchmark("Etchash", mh(127.0), 249.0, 0.40, "lolMiner", "+2500 mem, 250W PL"),
             benchmark("Autolykos", mh(285.0), 131.0, 0.30, "Rigel", "high-efficiency ERG tune"),
@@ -476,6 +499,7 @@ fn rx_6700_xt_profile() -> MiningRigProfile {
         tuning_summary: "Undervolted RDNA2 profile using low core lock and Samsung memory timings.",
         fallback_power_watts: 140.0,
         benchmarks: vec![
+            benchmark("SHA256", gh(2.60), 138.0, 0.25, "OpenCL SHA256 proxy estimate", "software SHA256 theoretical RDNA2 path"),
             benchmark("Ethash", mh(46.95), 98.0, 0.35, "TeamRedMiner", "1250 core, 675 mv, mem lock 1050"),
             benchmark("Etchash", mh(46.95), 98.0, 0.35, "TeamRedMiner", "1250 core, 675 mv, mem lock 1050"),
             benchmark("Autolykos", mh(106.41), 90.0, 0.30, "TeamRedMiner", "ERG medium OC"),
@@ -565,14 +589,24 @@ fn intel_i7_14700f_proxy_profile() -> MiningRigProfile {
         source: "Hashrate.no i9-13900K RandomX benchmark pages used as a conservative proxy",
         tuning_summary: "Proxy CPU profile for 14th-gen Intel desktop chips when no exact validated 14700F page is available.",
         fallback_power_watts: 125.0,
-        benchmarks: vec![benchmark(
-            "RandomX",
-            kh(13.48),
-            125.0,
-            0.40,
-            "Hashrate.no validated Intel RandomX proxy",
-            "13900K-class RandomX reference applied conservatively",
-        )],
+        benchmarks: vec![
+            benchmark(
+                "RandomX",
+                kh(13.48),
+                125.0,
+                0.40,
+                "Hashrate.no validated Intel RandomX proxy",
+                "13900K-class RandomX reference applied conservatively",
+            ),
+            benchmark(
+                "SHA256",
+                mh(92.0),
+                125.0,
+                0.25,
+                "cpuminer SHA256 estimate",
+                "software SHA256 theoretical desktop CPU path",
+            ),
+        ],
     }
 }
 
@@ -587,6 +621,7 @@ fn ryzen_5_7600_profile() -> MiningRigProfile {
         tuning_summary: "Desktop CPU reference tuned around efficient RandomX, AstroBWTv3, and VerusHash operation.",
         fallback_power_watts: 65.0,
         benchmarks: vec![
+            benchmark("SHA256", mh(55.0), 65.0, 0.25, "cpuminer SHA256 estimate", "software SHA256 theoretical Ryzen 5 path"),
             benchmark("RandomX", kh(8.24), 65.0, 0.35, "Hashrate.no verified CPU benchmark", "desktop RandomX reference"),
             benchmark("AstroBWTv3", kh(15.30), 65.0, 0.45, "Hashrate.no verified CPU benchmark", "DERO-oriented CPU reference"),
             benchmark("VerusHash", mh(21.43), 65.0, 0.40, "Hashrate.no verified CPU benchmark", "balanced VerusHash desktop reference"),
@@ -605,6 +640,7 @@ fn ryzen_9_7950x3d_profile() -> MiningRigProfile {
         tuning_summary: "High-cache desktop CPU profile spanning RandomX, AstroBWTv3, VerusHash, Ghostrider, Randomscash, and CryptoNightTurtle coverage.",
         fallback_power_watts: 120.0,
         benchmarks: vec![
+            benchmark("SHA256", mh(148.0), 120.0, 0.25, "cpuminer SHA256 estimate", "software SHA256 theoretical X3D path"),
             benchmark("RandomX", kh(22.50), 120.0, 0.35, "Hashrate.no verified CPU benchmark", "7950X3D RandomX reference"),
             benchmark("AstroBWTv3", kh(35.19), 115.0, 0.45, "Hashrate.no verified CPU benchmark", "7950X3D DERO reference"),
             benchmark("VerusHash", mh(58.94), 120.0, 0.40, "Hashrate.no verified CPU benchmark", "7950X3D VerusHash reference"),
@@ -626,6 +662,7 @@ fn amd_epyc_9754_profile() -> MiningRigProfile {
         tuning_summary: "Dense-core server CPU profile for XelisHashv3 plus high-throughput RandomX, AstroBWTv3, and VerusHash workloads.",
         fallback_power_watts: 360.0,
         benchmarks: vec![
+            benchmark("SHA256", mh(430.0), 360.0, 0.25, "cpuminer SHA256 estimate", "software SHA256 theoretical server CPU path"),
             benchmark("RandomX", kh(65.77), 360.0, 0.35, "Hashrate.no verified CPU benchmark", "server-class RandomX reference"),
             benchmark("AstroBWTv3", kh(176.0), 360.0, 0.45, "Hashrate.no verified CPU benchmark", "server-class DERO reference"),
             benchmark("VerusHash", mh(272.16), 360.0, 0.40, "Hashrate.no verified CPU benchmark", "server-class VerusHash reference"),
@@ -644,7 +681,14 @@ fn generic_gpu_profile(specs: &SystemSpecs) -> MiningRigProfile {
         source: "WhatToMine reference rig fallback",
         tuning_summary: "Fallback profile when no curated benchmark matches the detected GPU.",
         fallback_power_watts: 140.0,
-        benchmarks: Vec::new(),
+        benchmarks: vec![benchmark(
+            "SHA256",
+            gh(1.20),
+            140.0,
+            0.30,
+            "generic OpenCL/CUDA estimate",
+            "software SHA256 fallback path",
+        )],
     }
 }
 
@@ -658,7 +702,14 @@ fn generic_cpu_profile(_specs: &SystemSpecs) -> MiningRigProfile {
         source: "Detected CPU fallback",
         tuning_summary: "Fallback profile when no curated CPU benchmark matches the detected processor.",
         fallback_power_watts: 95.0,
-        benchmarks: Vec::new(),
+        benchmarks: vec![benchmark(
+            "SHA256",
+            mh(40.0),
+            95.0,
+            0.30,
+            "generic cpuminer estimate",
+            "software SHA256 fallback path",
+        )],
     }
 }
 
@@ -706,4 +757,15 @@ fn gh(value: f64) -> f64 {
 
 fn th(value: f64) -> f64 {
     value * 1_000_000_000_000.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn local_profiles_keep_sha256_software_paths() {
+        assert!(rtx_4060_profile().benchmark_for("SHA256").is_some());
+        assert!(intel_i7_14700f_proxy_profile().benchmark_for("SHA256").is_some());
+    }
 }

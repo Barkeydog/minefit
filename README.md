@@ -4,13 +4,17 @@
 
 ## What It Models
 
-- Live tier-one coin data from WhatToMine, Hashrate.no, and MiningPoolStats, with BTC spot from Coinbase.
+- Live tier-one coin discovery from WhatToMine, Hashrate.no, and MiningPoolStats, with BTC spot from Coinbase. Current public snapshots are now clearing 100+ coins and include BTC again.
 - Utility-specific residential tariffs for supported California utilities, with EIA state-average fallback.
 - Real rig profiles for selected GPUs, ASICs, and CPUs, including tuned hashrate, watt draw, and reject-rate assumptions.
-- Pool-specific fee, stale-share, and uptime drag.
+- 40+ modeled mining techniques across pool, marketplace, hosted, eco, windowed, and solo strategies.
+- Pool-specific fee, stale-share, duty-cycle, tuning, and uptime drag.
 - Coin eligibility checks for VRAM/DAG pressure, backend/vendor fit, and benchmark coverage.
 - Solo-mining variance, including zero-block odds and p50/p90 monthly outcomes.
 - Liquidity-aware cashflow caps so low-volume coins do not outrank deep markets on impossible exit assumptions.
+- Persistent local state for power context, filters, sort mode, and last-viewed layout.
+- Snapshot caching plus timestamped startup archives under `~/.config/minefit/cache` so boot is faster and feed failures can fall back cleanly.
+- Software SHA256 benchmarks for CPU and GPU so BTC can show on the current machine as a theoretical, usually uneconomic path.
 
 ## Run
 
@@ -21,6 +25,14 @@ cargo run -p minefit --manifest-path .\Cargo.toml --
 ```
 
 `minefit` uses your detected local GPU and CPU only as the default comparison scope.
+
+State and cache:
+
+```text
+~/.config/minefit/state.json
+~/.config/minefit/cache/latest.json
+~/.config/minefit/cache/snapshots/
+```
 
 Common flags:
 

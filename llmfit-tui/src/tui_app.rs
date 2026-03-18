@@ -1,12 +1,15 @@
+use crate::persistence::{PersistedAppState, PersistedSelection, save_persisted_state};
 use crate::theme::Theme;
 use llmfit_core::{
-    MiningRigProfile, PowerContext, build_rankings_for_rigs, describe_rig_scope,
+    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
+    describe_rig_scope,
     expand_power_context_options,
 };
 use llmfit_core::hardware::SystemSpecs;
 use llmfit_core::mining::{
     FitLevel, METHODS, MiningRow, MiningSnapshot, SortColumn, sort_rankings,
 };
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InputMode {
@@ -16,7 +19,7 @@ pub enum InputMode {
     MethodPopup,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum FitFilter {
     All,
     Positive,
@@ -76,6 +79,7 @@ pub struct App {
     pub power_index: usize,
     pub rigs: Vec<MiningRigProfile>,
     pub rig_label: String,
+    pub snapshot_status: SnapshotCacheStatus,
     pub status_message: String,
 }
 
@@ -83,9 +87,11 @@ impl App {
     pub fn new(
         specs: SystemSpecs,
         snapshot: MiningSnapshot,
+        snapshot_status: SnapshotCacheStatus,
         power: PowerContext,
         rigs: Vec<MiningRigProfile>,
         sort_column: SortColumn,
+        persisted_state: Option<&PersistedAppState>,
     ) -> Self {
         let algorithms = snapshot.algorithms();
         let methods = METHODS.iter().map(|method| method.name.to_string()).collect();
@@ -122,22 +128,23 @@ impl App {
             power_index,
             rigs,
             rig_label,
+            snapshot_status,
             status_message: String::new(),
         };
 
         app.selected_algorithms = vec![true; app.algorithms.len()];
-        app.status_message = format!(
-            "Live feed: {} coins | Power: {} | Rig: {}",
-            app.snapshot.coins.len(),
-            app.power.summary_line(),
-            app.rig_badge()
-        );
-        app.rebuild_rows(None);
+        let persisted_selection = persisted_state.and_then(|state| app.apply_persisted_state(state));
+        app.status_message = app.startup_status_message(persisted_state);
+        app.rebuild_rows(persisted_selection);
         app
     }
 
     pub fn power_badge(&self) -> String {
         self.power.badge()
+    }
+
+    pub fn snapshot_badge(&self) -> String {
+        self.snapshot_status.badge()
     }
 
     pub fn rig_badge(&self) -> String {
@@ -159,16 +166,34 @@ impl App {
 
     pub fn refresh_data(&mut self) {
         let selected_key = self.selected_key();
-        match MiningSnapshot::fetch_live() {
-            Ok(snapshot) => {
-                self.snapshot = snapshot;
+        let all_algorithms_selected = self.selected_algorithms.iter().all(|selected| *selected);
+        let visible_algorithms = self
+            .algorithms
+            .iter()
+            .zip(self.selected_algorithms.iter())
+            .filter_map(|(algorithm, selected)| if *selected { Some(algorithm.clone()) } else { None })
+            .collect::<Vec<_>>();
+        match MiningSnapshot::refresh_with_cache() {
+            Ok(load) => {
+                self.snapshot = load.snapshot;
+                self.snapshot_status = load.status;
                 self.algorithms = self.snapshot.algorithms();
-                self.selected_algorithms = vec![true; self.algorithms.len()];
+                self.selected_algorithms = if all_algorithms_selected {
+                    vec![true; self.algorithms.len()]
+                } else {
+                    self.algorithms
+                        .iter()
+                        .map(|algorithm| visible_algorithms.iter().any(|saved| saved == algorithm))
+                        .collect()
+                };
+                if !self.selected_algorithms.iter().any(|selected| *selected) {
+                    self.selected_algorithms = vec![true; self.algorithms.len()];
+                }
                 self.status_message = format!(
-                    "Feed refreshed: {} coins | Power: {} | Rig: {}",
+                    "Feed refreshed: {} coins | Snapshot: {} | Power: {}",
                     self.snapshot.coins.len(),
+                    self.snapshot_badge(),
                     self.power_badge(),
-                    self.rig_badge()
                 );
                 self.rebuild_rows(selected_key);
             }
@@ -349,12 +374,16 @@ impl App {
         &self.rigs
     }
 
-    fn selected_key(&self) -> Option<(String, &'static str, String)> {
+    fn selected_key(&self) -> Option<(String, String, String)> {
         let row = self.selected_fit()?;
-        Some((row.coin.symbol.clone(), row.method.id, row.rig_name.clone()))
+        Some((
+            row.coin.symbol.clone(),
+            row.method.id.to_string(),
+            row.rig_name.clone(),
+        ))
     }
 
-    fn rebuild_rows(&mut self, selected_key: Option<(String, &'static str, String)>) {
+    fn rebuild_rows(&mut self, selected_key: Option<(String, String, String)>) {
         self.all_rows = build_rankings_for_rigs(&self.snapshot, &self.power, self.active_rigs(), 1.0);
         sort_rankings(&mut self.all_rows, self.sort_column, self.sort_ascending);
         self.apply_filters();
@@ -436,6 +465,106 @@ impl App {
         } else if self.selected_row >= self.filtered_rows.len() {
             self.selected_row = self.filtered_rows.len() - 1;
         }
+    }
+
+    fn startup_status_message(&self, persisted_state: Option<&PersistedAppState>) -> String {
+        let mut parts = vec![
+            format!("Snapshot: {}", self.snapshot_badge()),
+            format!("{} coins", self.snapshot.coins.len()),
+        ];
+        if let Some(state) = persisted_state {
+            parts.push(if state.hardware_changed(&self.specs) {
+                "Hardware changed since last launch".to_string()
+            } else {
+                "Layout restored".to_string()
+            });
+        }
+        parts.join(" | ")
+    }
+
+    fn apply_persisted_state(
+        &mut self,
+        state: &PersistedAppState,
+    ) -> Option<(String, String, String)> {
+        self.search_query = state.search_query.clone();
+        self.cursor_position = self.search_query.len();
+        self.fit_filter = state.fit_filter;
+        self.sort_column = state.sort_column;
+        self.sort_ascending = state.sort_ascending;
+        self.show_detail = state.show_detail;
+
+        if let Some(idx) = self
+            .power_options
+            .iter()
+            .position(|option| option.plan_id == state.power.plan_id)
+        {
+            self.power_index = idx;
+            self.power = self.power_options[idx].clone();
+        }
+
+        if !state.selected_algorithms.is_empty() {
+            self.selected_algorithms = self
+                .algorithms
+                .iter()
+                .map(|algorithm| state.selected_algorithms.iter().any(|saved| saved == algorithm))
+                .collect();
+            if !self.selected_algorithms.iter().any(|selected| *selected) {
+                self.selected_algorithms = vec![true; self.algorithms.len()];
+            }
+        }
+
+        if !state.selected_method_ids.is_empty() {
+            self.selected_methods = METHODS
+                .iter()
+                .map(|method| {
+                    state
+                        .selected_method_ids
+                        .iter()
+                        .any(|saved| saved == method.id)
+                })
+                .collect();
+            if !self.selected_methods.iter().any(|selected| *selected) {
+                self.selected_methods = vec![true; METHODS.len()];
+            }
+        }
+
+        match (
+            state.selection.symbol.clone(),
+            state.selection.method_id.clone(),
+            state.selection.rig_name.clone(),
+        ) {
+            (Some(symbol), Some(method_id), Some(rig_name)) => Some((symbol, method_id, rig_name)),
+            _ => None,
+        }
+    }
+
+    pub fn persist_state(&self) {
+        let selected_key = self.selected_key();
+        let state = PersistedAppState::new(
+            self.specs.clone(),
+            self.power.clone(),
+            self.sort_column,
+            self.sort_ascending,
+            self.fit_filter,
+            self.search_query.clone(),
+            self.algorithms
+                .iter()
+                .zip(self.selected_algorithms.iter())
+                .filter_map(|(algorithm, selected)| if *selected { Some(algorithm.clone()) } else { None })
+                .collect(),
+            METHODS
+                .iter()
+                .zip(self.selected_methods.iter())
+                .filter_map(|(method, selected)| if *selected { Some(method.id.to_string()) } else { None })
+                .collect(),
+            self.show_detail,
+            PersistedSelection {
+                symbol: selected_key.as_ref().map(|key| key.0.clone()),
+                method_id: selected_key.as_ref().map(|key| key.1.clone()),
+                rig_name: selected_key.as_ref().map(|key| key.2.clone()),
+            },
+        );
+        save_persisted_state(&state);
     }
 }
 

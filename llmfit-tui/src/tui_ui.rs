@@ -93,6 +93,11 @@ fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         ),
         Span::styled("  |  ", Style::default().fg(tc.muted)),
         Span::styled(
+            format!("Snapshot: {}", app.snapshot_badge()),
+            Style::default().fg(tc.info),
+        ),
+        Span::styled("  |  ", Style::default().fg(tc.muted)),
+        Span::styled(
             format!("Power: {}", app.power_badge()),
             Style::default().fg(tc.warning),
         ),

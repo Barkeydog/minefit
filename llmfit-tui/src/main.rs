@@ -1,13 +1,16 @@
+mod persistence;
 mod theme;
 mod tui_app;
 mod tui_events;
 mod tui_ui;
 
 use clap::Parser;
+use persistence::{PersistedAppState, load_persisted_state};
 use llmfit_core::{
-    MiningRigProfile, PowerContext, build_rankings_for_rigs, describe_rig_scope,
+    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
+    describe_rig_scope,
     describe_rig_scope_summary, fallback_power_context, resolve_detected_rig_profiles,
-    resolve_power_context,
+    resolve_power_context, expand_power_context_options,
 };
 use llmfit_core::hardware::{SystemSpecs, parse_memory_size};
 use llmfit_core::mining::{MiningSnapshot, SortColumn, sort_rankings};
@@ -60,8 +63,8 @@ struct Cli {
     limit: Option<usize>,
 
     /// Sort column for CLI output
-    #[arg(long, value_enum, default_value_t = SortArg::Score)]
-    sort: SortArg,
+    #[arg(long, value_enum)]
+    sort: Option<SortArg>,
 
     /// Electricity rate in USD/kWh
     #[arg(long)]
@@ -105,6 +108,7 @@ fn detect_specs(memory_override: &Option<String>) -> SystemSpecs {
 fn run_cli(
     specs: &SystemSpecs,
     snapshot: &MiningSnapshot,
+    snapshot_status: &SnapshotCacheStatus,
     mut rows: Vec<llmfit_core::MiningRow>,
     sort: SortColumn,
     limit: Option<usize>,
@@ -114,8 +118,9 @@ fn run_cli(
     sort_rankings(&mut rows, sort, false);
 
     println!(
-        "minefit | {} live coins | BTC ${:.2} | power {}",
+        "minefit | {} live coins | snapshot {} | BTC ${:.2} | power {}",
         snapshot.coins.len(),
+        snapshot_status.badge(),
         snapshot.btc_usd,
         power.badge()
     );
@@ -202,9 +207,11 @@ fn draw_boot_screen(
 fn run_tui(
     specs: SystemSpecs,
     snapshot: MiningSnapshot,
+    snapshot_status: SnapshotCacheStatus,
     power: PowerContext,
     rigs: Vec<MiningRigProfile>,
     sort: SortColumn,
+    persisted_state: Option<&PersistedAppState>,
 ) -> std::io::Result<()> {
     crossterm::terminal::enable_raw_mode()?;
     let mut stdout = std::io::stdout();
@@ -218,7 +225,15 @@ fn run_tui(
     let mut terminal = ratatui::Terminal::new(backend)?;
     draw_boot_screen(&mut terminal, "Building mining comparison matrix...")?;
 
-    let mut app = tui_app::App::new(specs, snapshot, power, rigs, sort);
+    let mut app = tui_app::App::new(
+        specs,
+        snapshot,
+        snapshot_status,
+        power,
+        rigs,
+        sort,
+        persisted_state,
+    );
 
     loop {
         terminal.draw(|frame| {
@@ -244,24 +259,36 @@ fn run_tui(
 
 fn main() {
     let cli = Cli::parse();
+    let persisted_state = load_persisted_state();
     let manual_electricity = cli.electricity.map(|value| clamp(value, 0.0, 1.0));
-    let sort = SortColumn::from(cli.sort);
+    let sort = cli
+        .sort
+        .map(SortColumn::from)
+        .or_else(|| persisted_state.as_ref().map(|state| state.sort_column))
+        .unwrap_or(SortColumn::Score);
 
     let specs = detect_specs(&cli.memory);
     let active_rigs = resolve_detected_rig_profiles(&specs);
-    let power = resolve_power_context(
+    let resolved_power = resolve_power_context(
         manual_electricity,
         cli.location.as_deref(),
         cli.power_plan.as_deref(),
     )
     .unwrap_or_else(fallback_power_context);
-    let snapshot = match MiningSnapshot::fetch_live() {
+    let power = restore_saved_power(
+        resolved_power,
+        &cli,
+        persisted_state.as_ref(),
+    );
+    let snapshot_load = match MiningSnapshot::load_startup_snapshot() {
         Ok(snapshot) => snapshot,
         Err(err) => {
             eprintln!("Error: {err}");
             std::process::exit(1);
         }
     };
+    let snapshot_status = snapshot_load.status.clone();
+    let snapshot = snapshot_load.snapshot;
 
     let mut rows = build_rankings_for_rigs(&snapshot, &power, &active_rigs, 1.0);
     sort_rankings(&mut rows, sort, false);
@@ -274,6 +301,7 @@ fn main() {
         let payload = json!({
             "system": specs,
             "snapshot": snapshot,
+            "snapshot_status": snapshot_status,
             "power": power,
             "rig_scope": describe_rig_scope(&active_rigs),
             "rig_profiles": active_rigs,
@@ -287,12 +315,47 @@ fn main() {
     }
 
     if cli.cli {
-        run_cli(&specs, &snapshot, rows, sort, cli.limit, &power, &active_rigs);
+        run_cli(
+            &specs,
+            &snapshot,
+            &snapshot_status,
+            rows,
+            sort,
+            cli.limit,
+            &power,
+            &active_rigs,
+        );
         return;
     }
 
-    if let Err(err) = run_tui(specs, snapshot, power, active_rigs, sort) {
+    if let Err(err) = run_tui(
+        specs,
+        snapshot,
+        snapshot_status,
+        power,
+        active_rigs,
+        sort,
+        persisted_state.as_ref(),
+    ) {
         eprintln!("Error running TUI: {err}");
         std::process::exit(1);
     }
+}
+
+fn restore_saved_power(
+    default_power: PowerContext,
+    cli: &Cli,
+    persisted_state: Option<&PersistedAppState>,
+) -> PowerContext {
+    if cli.electricity.is_some() || cli.location.is_some() || cli.power_plan.is_some() {
+        return default_power;
+    }
+
+    let Some(state) = persisted_state else {
+        return default_power;
+    };
+    expand_power_context_options(&default_power)
+        .into_iter()
+        .find(|option| option.plan_id == state.power.plan_id)
+        .unwrap_or(default_power)
 }

@@ -16,6 +16,7 @@ pub fn handle_events(app: &mut App) -> std::io::Result<bool> {
             InputMode::AlgorithmPopup => handle_algorithm_popup_mode(app, key),
             InputMode::MethodPopup => handle_method_popup_mode(app, key),
         }
+        app.persist_state();
         return Ok(true);
     }
 

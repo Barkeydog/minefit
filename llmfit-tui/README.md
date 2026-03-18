@@ -4,6 +4,12 @@ Mining coin and method comparison in the terminal, built from the `llmfit` TUI c
 
 The live snapshot now combines WhatToMine, Hashrate.no, and MiningPoolStats so the default feed covers 100+ tier-one coins on current public data, including BTC. Ranking defaults to your detected local CPU and GPU only.
 
+This build also adds:
+- 40+ modeled techniques across pool, marketplace, hosted, eco, windowed, and solo paths.
+- Persistent sort/filter/power/layout state in `~/.config/minefit/state.json`.
+- Warm-start cache and archived startup snapshots in `~/.config/minefit/cache/`.
+- Software SHA256 benchmarks so BTC can appear on CPU and GPU as a theoretical, usually uneconomic route.
+
 ## Usage
 
 ```powershell

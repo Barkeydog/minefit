@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use sysinfo::System;
 
 /// The acceleration backend for inference speed estimation.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum GpuBackend {
     Cuda,
     Metal,
@@ -30,7 +30,7 @@ impl GpuBackend {
 }
 
 /// Information about a single detected GPU.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GpuInfo {
     pub name: String,
     pub vram_gb: Option<f64>,
@@ -39,7 +39,7 @@ pub struct GpuInfo {
     pub unified_memory: bool,
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct SystemSpecs {
     pub total_ram_gb: f64,
     pub available_ram_gb: f64,
