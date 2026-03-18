@@ -5,15 +5,14 @@ mod tui_events;
 mod tui_ui;
 
 use clap::Parser;
-use persistence::{PersistedAppState, load_persisted_state};
-use llmfit_core::{
-    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
-    describe_rig_scope,
-    describe_rig_scope_summary, fallback_power_context, resolve_detected_rig_profiles,
-    resolve_power_context, expand_power_context_options,
-};
 use llmfit_core::hardware::{SystemSpecs, parse_memory_size};
 use llmfit_core::mining::{MiningSnapshot, SortColumn, sort_rankings};
+use llmfit_core::{
+    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
+    describe_rig_scope, describe_rig_scope_summary, expand_power_context_options,
+    fallback_power_context, resolve_detected_rig_profiles, resolve_power_context,
+};
+use persistence::{PersistedAppState, load_persisted_state};
 use ratatui::backend::CrosstermBackend;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Modifier, Style};
@@ -133,14 +132,27 @@ fn run_cli(
     println!();
     println!(
         "{:<12} {:<12} {:<12} {:<12} {:>6} {:>11} {:>11} {:>10} {:>8} {:<12}",
-        "Coin", "Algo", "Rig", "Method", "Score", "Net/day", "Gross/day", "Blocks/mo", "Trend", "Fit"
+        "Coin",
+        "Algo",
+        "Rig",
+        "Method",
+        "Score",
+        "Net/day",
+        "Gross/day",
+        "Blocks/mo",
+        "Trend",
+        "Fit"
     );
     println!("{}", "-".repeat(116));
 
     for row in rows.into_iter().take(limit.unwrap_or(25)) {
         println!(
             "{:<12} {:<12} {:<12} {:<12} {:>6.0} {:>11.2} {:>11.2} {:>10.2} {:>7.1}% {:<12}",
-            format!("{} ({})", row.coin.symbol, row.coin.name.chars().take(3).collect::<String>()),
+            format!(
+                "{} ({})",
+                row.coin.symbol,
+                row.coin.name.chars().take(3).collect::<String>()
+            ),
             cli_truncate(&row.coin.algorithm, 12),
             cli_truncate(&row.rig_name, 12),
             cli_truncate(row.method.name, 12),
@@ -159,7 +171,11 @@ fn truncate(value: &str, width: usize) -> String {
     if value.chars().count() <= width {
         value.to_string()
     } else {
-        value.chars().take(width.saturating_sub(1)).collect::<String>() + "…"
+        value
+            .chars()
+            .take(width.saturating_sub(1))
+            .collect::<String>()
+            + "…"
     }
 }
 
@@ -169,7 +185,10 @@ fn cli_truncate(value: &str, width: usize) -> String {
     } else {
         format!(
             "{}...",
-            value.chars().take(width.saturating_sub(3)).collect::<String>()
+            value
+                .chars()
+                .take(width.saturating_sub(3))
+                .collect::<String>()
         )
     }
 }
@@ -274,11 +293,7 @@ fn main() {
         cli.power_plan.as_deref(),
     )
     .unwrap_or_else(fallback_power_context);
-    let power = restore_saved_power(
-        resolved_power,
-        &cli,
-        persisted_state.as_ref(),
-    );
+    let power = restore_saved_power(resolved_power, &cli, persisted_state.as_ref());
     let snapshot_load = match MiningSnapshot::load_startup_snapshot() {
         Ok(snapshot) => snapshot,
         Err(err) => {

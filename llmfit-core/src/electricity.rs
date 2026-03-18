@@ -139,7 +139,9 @@ impl ElectricityProfile {
                 }
                 parts.join(" | ")
             }
-            ElectricityMode::Manual => format!("Manual electricity rate at ${:.2}/kWh", self.usd_per_kwh),
+            ElectricityMode::Manual => {
+                format!("Manual electricity rate at ${:.2}/kWh", self.usd_per_kwh)
+            }
             ElectricityMode::Fallback => format!(
                 "Fallback electricity rate at ${:.2}/kWh{}",
                 self.usd_per_kwh,
@@ -165,11 +167,21 @@ impl PowerContext {
                 self.location_profile.short_badge(),
                 self.effective_rate_hint_usd_kwh
             ),
-            PowerPlanId::PgeE1Tier2 => format!("PG&E E-1 ${:.2}/kWh", self.effective_rate_hint_usd_kwh),
-            PowerPlanId::PgeETouC => format!("PG&E TOU-C ${:.2}/kWh", self.effective_rate_hint_usd_kwh),
-            PowerPlanId::PgeEv2A => format!("PG&E EV2-A ${:.2}/kWh", self.effective_rate_hint_usd_kwh),
-            PowerPlanId::SceTouD49 => format!("SCE 4-9 ${:.2}/kWh", self.effective_rate_hint_usd_kwh),
-            PowerPlanId::SceTouD58 => format!("SCE 5-8 ${:.2}/kWh", self.effective_rate_hint_usd_kwh),
+            PowerPlanId::PgeE1Tier2 => {
+                format!("PG&E E-1 ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
+            }
+            PowerPlanId::PgeETouC => {
+                format!("PG&E TOU-C ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
+            }
+            PowerPlanId::PgeEv2A => {
+                format!("PG&E EV2-A ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
+            }
+            PowerPlanId::SceTouD49 => {
+                format!("SCE 4-9 ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
+            }
+            PowerPlanId::SceTouD58 => {
+                format!("SCE 5-8 ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
+            }
             PowerPlanId::SdgeStandardDrTier2 => {
                 format!("SDG&E DR ${:.2}/kWh", self.effective_rate_hint_usd_kwh)
             }
@@ -185,7 +197,11 @@ impl PowerContext {
                 self.location_profile.summary_line()
             }
             _ => {
-                let mut parts = vec![self.plan_label.clone(), self.plan_description.clone(), self.source.clone()];
+                let mut parts = vec![
+                    self.plan_label.clone(),
+                    self.plan_description.clone(),
+                    self.source.clone(),
+                ];
                 if let Some(season) = &self.season_label {
                     parts.push(format!("{season} season"));
                 }
@@ -405,7 +421,10 @@ pub fn expand_power_context_options(context: &PowerContext) -> Vec<PowerContext>
                     power_context_from_profile(profile.clone(), PowerPlanId::SdgeStandardDrTier2),
                     power_context_from_profile(profile, PowerPlanId::SdgeTouDr2Tier2),
                 ],
-                None => vec![power_context_from_profile(profile, PowerPlanId::StateAverage)],
+                None => vec![power_context_from_profile(
+                    profile,
+                    PowerPlanId::StateAverage,
+                )],
             }
         }
     }
@@ -605,7 +624,9 @@ fn fetch_state_rate_table() -> Result<StateRateTable, String> {
     }
 
     if residential_cents.is_empty() {
-        return Err("Unable to parse residential state electricity rates from the EIA page".to_string());
+        return Err(
+            "Unable to parse residential state electricity rates from the EIA page".to_string(),
+        );
     }
 
     Ok(StateRateTable {
@@ -629,9 +650,9 @@ fn detect_location_from_ip() -> Result<LocationTarget, String> {
         .map_err(|err| format!("IP geolocation JSON parse failed: {err}"))?;
 
     if !payload.success {
-        return Err(payload
-            .message
-            .unwrap_or_else(|| "IP geolocation provider returned an unsuccessful response".to_string()));
+        return Err(payload.message.unwrap_or_else(|| {
+            "IP geolocation provider returned an unsuccessful response".to_string()
+        }));
     }
 
     if !payload.country_code.eq_ignore_ascii_case("US") {
@@ -750,9 +771,7 @@ fn parse_power_plan_id(value: &str) -> Result<PowerPlanId, String> {
         "PGEEV2A" | "EV2A" => Ok(PowerPlanId::PgeEv2A),
         "SCETOUD49" | "SCETOUD49PM" | "SCED49" => Ok(PowerPlanId::SceTouD49),
         "SCETOUD58" | "SCETOUD58PM" | "SCED58" => Ok(PowerPlanId::SceTouD58),
-        "SDGESTANDARDDR" | "SDGEDR" | "SDGESTANDARDDRTIER2" => {
-            Ok(PowerPlanId::SdgeStandardDrTier2)
-        }
+        "SDGESTANDARDDR" | "SDGEDR" | "SDGESTANDARDDRTIER2" => Ok(PowerPlanId::SdgeStandardDrTier2),
         "SDGETOUDR2" | "SDGEDR2" | "SDGETOUDR2TIER2" => Ok(PowerPlanId::SdgeTouDr2Tier2),
         other => Err(format!(
             "Unsupported --power-plan '{value}'. Use state, pge-e1, pge-e-tou-c, pge-ev2-a, sce-tou-d-4-9pm, sce-tou-d-5-8pm, sdge-standard-dr, or sdge-tou-dr2. Parsed token: {other}"
@@ -774,7 +793,11 @@ fn infer_ca_utility(profile: &ElectricityProfile) -> Option<CaUtility> {
         return None;
     }
 
-    let city = profile.city.as_deref().unwrap_or_default().to_ascii_lowercase();
+    let city = profile
+        .city
+        .as_deref()
+        .unwrap_or_default()
+        .to_ascii_lowercase();
     let postal = profile.postal_code.as_deref().unwrap_or_default();
     let has_granular_location = !city.is_empty() || !postal.is_empty();
 
@@ -837,9 +860,7 @@ fn utility_for_plan(plan_id: PowerPlanId) -> Option<CaUtility> {
             Some(CaUtility::Pge)
         }
         PowerPlanId::SceTouD49 | PowerPlanId::SceTouD58 => Some(CaUtility::Sce),
-        PowerPlanId::SdgeStandardDrTier2 | PowerPlanId::SdgeTouDr2Tier2 => {
-            Some(CaUtility::Sdge)
-        }
+        PowerPlanId::SdgeStandardDrTier2 | PowerPlanId::SdgeTouDr2Tier2 => Some(CaUtility::Sdge),
         _ => None,
     }
 }
@@ -969,7 +990,10 @@ mod tests {
             </span>
         "#;
         assert_eq!(extract_data_month(page).as_deref(), Some("December 2025"));
-        assert_eq!(extract_release_date(page).as_deref(), Some("February 24, 2026"));
+        assert_eq!(
+            extract_release_date(page).as_deref(),
+            Some("February 24, 2026")
+        );
     }
 
     #[test]
@@ -1037,7 +1061,21 @@ mod tests {
     #[test]
     fn live_table_fetch_returns_some_rates() {
         let table = fetch_state_rate_table().expect("live EIA state rate table should parse");
-        assert!(table.residential_cents.get("California").copied().unwrap_or_default() > 0.0);
-        assert!(table.residential_cents.get("Washington").copied().unwrap_or_default() > 0.0);
+        assert!(
+            table
+                .residential_cents
+                .get("California")
+                .copied()
+                .unwrap_or_default()
+                > 0.0
+        );
+        assert!(
+            table
+                .residential_cents
+                .get("Washington")
+                .copied()
+                .unwrap_or_default()
+                > 0.0
+        );
     }
 }

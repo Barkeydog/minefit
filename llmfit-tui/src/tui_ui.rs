@@ -69,8 +69,7 @@ pub fn draw(frame: &mut Frame, app: &mut App) {
 fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     let cpu_info = format!(
         "{} ({} cores)",
-        app.specs.cpu_name,
-        app.specs.total_cpu_cores
+        app.specs.cpu_name, app.specs.total_cpu_cores
     );
     let gpu_info = if app.specs.gpus.is_empty() {
         format!("GPU: none ({})", app.specs.backend.label())
@@ -184,7 +183,11 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
                 .split(area);
             let top = Layout::default()
                 .direction(Direction::Horizontal)
-                .constraints([Constraint::Min(24), Constraint::Length(16), Constraint::Length(16)])
+                .constraints([
+                    Constraint::Min(24),
+                    Constraint::Length(16),
+                    Constraint::Length(16),
+                ])
                 .split(rows[0]);
             let bottom = Layout::default()
                 .direction(Direction::Horizontal)
@@ -197,12 +200,18 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
                 .split(rows[1]);
 
             render_search_box(frame, app, top[0], search_style, search_text);
-            render_filter_boxes(frame, app, tc, top[1], top[2], bottom[0], bottom[1], bottom[2], bottom[3]);
+            render_filter_boxes(
+                frame, app, tc, top[1], top[2], bottom[0], bottom[1], bottom[2], bottom[3],
+            );
         }
         FilterLayoutMode::Medium => {
             let rows = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Length(3), Constraint::Length(3), Constraint::Length(3)])
+                .constraints([
+                    Constraint::Length(3),
+                    Constraint::Length(3),
+                    Constraint::Length(3),
+                ])
                 .split(area);
             let second = Layout::default()
                 .direction(Direction::Horizontal)
@@ -219,7 +228,9 @@ fn draw_search_and_filters(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeC
                 .split(rows[2]);
 
             render_search_box(frame, app, rows[0], search_style, search_text);
-            render_filter_boxes(frame, app, tc, second[0], second[1], third[0], third[1], third[2], third[3]);
+            render_filter_boxes(
+                frame, app, tc, second[0], second[1], third[0], third[1], third[2], third[3],
+            );
         }
         FilterLayoutMode::Narrow => {
             let rows = Layout::default()
@@ -274,10 +285,10 @@ fn render_search_box(
     );
 
     if app.input_mode == InputMode::Search {
-        let cursor_x = area
-            .x
-            .saturating_add(1)
-            .saturating_add(app.cursor_position.min(area.width.saturating_sub(3) as usize) as u16);
+        let cursor_x = area.x.saturating_add(1).saturating_add(
+            app.cursor_position
+                .min(area.width.saturating_sub(3) as usize) as u16,
+        );
         frame.set_cursor_position((cursor_x, area.y + 1));
     }
 }
@@ -508,19 +519,30 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
                     };
 
                     Row::new(vec![
-                        Cell::from(format!("{} {}", row.coin.symbol, truncate(&row.coin.name, 28))).style(base_style),
+                        Cell::from(format!(
+                            "{} {}",
+                            row.coin.symbol,
+                            truncate(&row.coin.name, 28)
+                        ))
+                        .style(base_style),
                         Cell::from(truncate(&row.coin.algorithm, 14)).style(base_style),
                         Cell::from(truncate(&row.rig_name, 26)).style(base_style.fg(tc.info)),
-                        Cell::from(truncate(row.method.name, 28)).style(base_style.fg(strategy_color(row.method.strategy, tc))),
-                        Cell::from(format!("{:.0}", row.score)).style(base_style.fg(score_color(row.score, tc))),
+                        Cell::from(truncate(row.method.name, 28))
+                            .style(base_style.fg(strategy_color(row.method.strategy, tc))),
+                        Cell::from(format!("{:.0}", row.score))
+                            .style(base_style.fg(score_color(row.score, tc))),
                         Cell::from(format!("{:.2}", row.net_usd_day)).style(net_style),
                         Cell::from(format!("{:.2}", row.gross_usd_day)).style(base_style),
                         Cell::from(format!("{:.2}", row.power_cost_usd_day)).style(base_style),
                         Cell::from(format!("{:.2}", row.blocks_month)).style(base_style),
                         Cell::from(format!("{:+.1}%", row.trend_delta_pct)).style(trend_style),
-                        Cell::from(row.fit_text()).style(base_style.fg(fit_color(row.fit_level, tc))),
-                        Cell::from(format_liquidity(row.coin.market_cap_usd, row.coin.volume_24h_usd))
-                            .style(base_style),
+                        Cell::from(row.fit_text())
+                            .style(base_style.fg(fit_color(row.fit_level, tc))),
+                        Cell::from(format_liquidity(
+                            row.coin.market_cap_usd,
+                            row.coin.volume_24h_usd,
+                        ))
+                        .style(base_style),
                     ])
                 })
                 .collect::<Vec<_>>(),
@@ -580,19 +602,31 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
                     };
 
                     Row::new(vec![
-                        Cell::from(format!("{} {}", row.coin.symbol, truncate(&row.coin.name, 16))).style(base_style),
+                        Cell::from(format!(
+                            "{} {}",
+                            row.coin.symbol,
+                            truncate(&row.coin.name, 16)
+                        ))
+                        .style(base_style),
                         Cell::from(truncate(&row.coin.algorithm, 12)).style(base_style),
-                        Cell::from(compact_device_name(&row.rig_name, 18)).style(base_style.fg(tc.info)),
-                        Cell::from(truncate(row.method.name, 18)).style(base_style.fg(strategy_color(row.method.strategy, tc))),
-                        Cell::from(format!("{:.0}", row.score)).style(base_style.fg(score_color(row.score, tc))),
+                        Cell::from(compact_device_name(&row.rig_name, 18))
+                            .style(base_style.fg(tc.info)),
+                        Cell::from(truncate(row.method.name, 18))
+                            .style(base_style.fg(strategy_color(row.method.strategy, tc))),
+                        Cell::from(format!("{:.0}", row.score))
+                            .style(base_style.fg(score_color(row.score, tc))),
                         Cell::from(format!("{:.2}", row.net_usd_day)).style(net_style),
                         Cell::from(format!("{:.2}", row.gross_usd_day)).style(base_style),
                         Cell::from(format!("{:.2}", row.power_cost_usd_day)).style(base_style),
                         Cell::from(format!("{:.2}", row.blocks_month)).style(base_style),
                         Cell::from(format!("{:+.1}%", row.trend_delta_pct)).style(trend_style),
-                        Cell::from(row.fit_text()).style(base_style.fg(fit_color(row.fit_level, tc))),
-                        Cell::from(format_liquidity(row.coin.market_cap_usd, row.coin.volume_24h_usd))
-                            .style(base_style),
+                        Cell::from(row.fit_text())
+                            .style(base_style.fg(fit_color(row.fit_level, tc))),
+                        Cell::from(format_liquidity(
+                            row.coin.market_cap_usd,
+                            row.coin.volume_24h_usd,
+                        ))
+                        .style(base_style),
                     ])
                 })
                 .collect::<Vec<_>>(),
@@ -648,14 +682,22 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
                     };
 
                     Row::new(vec![
-                        Cell::from(format!("{} {}", row.coin.symbol, truncate(&row.coin.name, 12))).style(base_style),
+                        Cell::from(format!(
+                            "{} {}",
+                            row.coin.symbol,
+                            truncate(&row.coin.name, 12)
+                        ))
+                        .style(base_style),
                         Cell::from(truncate(&row.coin.algorithm, 10)).style(base_style),
-                        Cell::from(compact_device_name(&row.rig_name, 14)).style(base_style.fg(tc.info)),
-                        Cell::from(truncate(row.method.name, 12)).style(base_style.fg(strategy_color(row.method.strategy, tc))),
+                        Cell::from(compact_device_name(&row.rig_name, 14))
+                            .style(base_style.fg(tc.info)),
+                        Cell::from(truncate(row.method.name, 12))
+                            .style(base_style.fg(strategy_color(row.method.strategy, tc))),
                         Cell::from(format!("{:.2}", row.net_usd_day)).style(net_style),
                         Cell::from(format!("{:.2}", row.power_cost_usd_day)).style(base_style),
                         Cell::from(format!("{:+.1}%", row.trend_delta_pct)).style(trend_style),
-                        Cell::from(row.fit_text()).style(base_style.fg(fit_color(row.fit_level, tc))),
+                        Cell::from(row.fit_text())
+                            .style(base_style.fg(fit_color(row.fit_level, tc))),
                     ])
                 })
                 .collect::<Vec<_>>(),
@@ -699,11 +741,19 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
                     };
 
                     Row::new(vec![
-                        Cell::from(format!("{} {}", row.coin.symbol, truncate(&row.coin.name, 12))).style(base_style),
-                        Cell::from(compact_device_name(&row.rig_name, 14)).style(base_style.fg(tc.info)),
-                        Cell::from(truncate(row.method.name, 12)).style(base_style.fg(strategy_color(row.method.strategy, tc))),
+                        Cell::from(format!(
+                            "{} {}",
+                            row.coin.symbol,
+                            truncate(&row.coin.name, 12)
+                        ))
+                        .style(base_style),
+                        Cell::from(compact_device_name(&row.rig_name, 14))
+                            .style(base_style.fg(tc.info)),
+                        Cell::from(truncate(row.method.name, 12))
+                            .style(base_style.fg(strategy_color(row.method.strategy, tc))),
                         Cell::from(format!("{:.2}", row.net_usd_day)).style(net_style),
-                        Cell::from(row.fit_text()).style(base_style.fg(fit_color(row.fit_level, tc))),
+                        Cell::from(row.fit_text())
+                            .style(base_style.fg(fit_color(row.fit_level, tc))),
                     ])
                 })
                 .collect::<Vec<_>>(),
@@ -729,7 +779,8 @@ fn draw_table(frame: &mut Frame, app: &mut App, area: Rect, tc: &ThemeColors) {
         .row_highlight_style(Style::default().bg(tc.highlight_bg))
         .highlight_symbol(">> ");
 
-    let mut state = TableState::default().with_selected(Some(app.selected_row.saturating_sub(viewport_start)));
+    let mut state =
+        TableState::default().with_selected(Some(app.selected_row.saturating_sub(viewport_start)));
     frame.render_stateful_widget(table, area, &mut state);
 
     let scrollbar = Scrollbar::new(ScrollbarOrientation::VerticalRight);
@@ -745,13 +796,19 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
 
     let header_primary = format!(
         "{} {} | {} | {} | {}",
-        row.coin.symbol, row.coin.name, row.coin.algorithm, row.method.name, row.fit_text()
+        row.coin.symbol,
+        row.coin.name,
+        row.coin.algorithm,
+        row.method.name,
+        row.fit_text()
     );
     let header_lines = vec![header_primary, row.method.description.to_string()];
     let metrics_height = if stacked_detail { 8 } else { 4 }.min(area.height.saturating_sub(3));
     let min_reasons_height = 6.min(area.height.saturating_sub(metrics_height + 1));
-    let reserve_middle_height = if stacked_detail { 12 } else { 8 }
-        .min(area.height.saturating_sub(metrics_height + min_reasons_height));
+    let reserve_middle_height = if stacked_detail { 12 } else { 8 }.min(
+        area.height
+            .saturating_sub(metrics_height + min_reasons_height),
+    );
     let header_height_needed = block_height_for_lines(area.width, &header_lines).max(4);
     let header_height_cap = area
         .height
@@ -789,7 +846,8 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     } else {
         area.width.saturating_sub(3) / 2
     };
-    let economics_height_needed = block_height_for_lines(detail_column_width, &economics_lines).max(5);
+    let economics_height_needed =
+        block_height_for_lines(detail_column_width, &economics_lines).max(5);
     let market_height_needed = block_height_for_lines(detail_column_width, &market_lines).max(5);
     let middle_height_needed = if stacked_detail {
         economics_height_needed.saturating_add(market_height_needed)
@@ -819,17 +877,21 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         Line::from(vec![
             Span::styled(
                 format!("{} ", row.coin.symbol),
-                Style::default()
-                    .fg(tc.title)
-                    .add_modifier(Modifier::BOLD),
+                Style::default().fg(tc.title).add_modifier(Modifier::BOLD),
             ),
             Span::styled(&row.coin.name, Style::default().fg(tc.fg)),
             Span::styled("  |  ", Style::default().fg(tc.muted)),
             Span::styled(&row.coin.algorithm, Style::default().fg(tc.accent)),
             Span::styled("  |  ", Style::default().fg(tc.muted)),
-            Span::styled(row.method.name, Style::default().fg(strategy_color(row.method.strategy, tc))),
+            Span::styled(
+                row.method.name,
+                Style::default().fg(strategy_color(row.method.strategy, tc)),
+            ),
             Span::styled("  |  ", Style::default().fg(tc.muted)),
-            Span::styled(row.fit_text(), Style::default().fg(fit_color(row.fit_level, tc))),
+            Span::styled(
+                row.fit_text(),
+                Style::default().fg(fit_color(row.fit_level, tc)),
+            ),
         ]),
         Line::from(Span::styled(
             row.method.description,
@@ -860,10 +922,42 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
             .split(metric_rows[1]);
 
-        draw_metric_box(frame, top_metrics[0], "Score", &format!("{:.0}/100", row.score), tc.score_high, tc);
-        draw_metric_box(frame, top_metrics[1], "Net/day", &format!("${:.2}", row.net_usd_day), if row.net_usd_day >= 0.0 { tc.good } else { tc.error }, tc);
-        draw_metric_box(frame, bottom_metrics[0], "Hashrate", &format_hashrate(row.hashrate_hs), tc.accent, tc);
-        draw_metric_box(frame, bottom_metrics[1], "Blocks/mo", &format!("{:.2}", row.blocks_month), tc.info, tc);
+        draw_metric_box(
+            frame,
+            top_metrics[0],
+            "Score",
+            &format!("{:.0}/100", row.score),
+            tc.score_high,
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            top_metrics[1],
+            "Net/day",
+            &format!("${:.2}", row.net_usd_day),
+            if row.net_usd_day >= 0.0 {
+                tc.good
+            } else {
+                tc.error
+            },
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            bottom_metrics[0],
+            "Hashrate",
+            &format_hashrate(row.hashrate_hs),
+            tc.accent,
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            bottom_metrics[1],
+            "Blocks/mo",
+            &format!("{:.2}", row.blocks_month),
+            tc.info,
+            tc,
+        );
     } else {
         let metrics = Layout::default()
             .direction(Direction::Horizontal)
@@ -875,10 +969,42 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             ])
             .split(sections[1]);
 
-        draw_metric_box(frame, metrics[0], "Score", &format!("{:.0}/100", row.score), tc.score_high, tc);
-        draw_metric_box(frame, metrics[1], "Net/day", &format!("${:.2}", row.net_usd_day), if row.net_usd_day >= 0.0 { tc.good } else { tc.error }, tc);
-        draw_metric_box(frame, metrics[2], "Hashrate", &format_hashrate(row.hashrate_hs), tc.accent, tc);
-        draw_metric_box(frame, metrics[3], "Blocks/mo", &format!("{:.2}", row.blocks_month), tc.info, tc);
+        draw_metric_box(
+            frame,
+            metrics[0],
+            "Score",
+            &format!("{:.0}/100", row.score),
+            tc.score_high,
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            metrics[1],
+            "Net/day",
+            &format!("${:.2}", row.net_usd_day),
+            if row.net_usd_day >= 0.0 {
+                tc.good
+            } else {
+                tc.error
+            },
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            metrics[2],
+            "Hashrate",
+            &format_hashrate(row.hashrate_hs),
+            tc.accent,
+            tc,
+        );
+        draw_metric_box(
+            frame,
+            metrics[3],
+            "Blocks/mo",
+            &format!("{:.2}", row.blocks_month),
+            tc.info,
+            tc,
+        );
     }
 
     let economics = Paragraph::new(vec![
@@ -887,8 +1013,16 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         detail_line("Power/mo", &format!("${:.2}", row.power_cost_usd_month), tc),
         detail_line("Fees/day", &format!("${:.2}", row.fee_cost_usd_day), tc),
         detail_line("Stale/day", &format!("${:.2}", row.stale_cost_usd_day), tc),
-        detail_line("Service/day", &format!("${:.2}", row.service_cost_usd_day), tc),
-        detail_line("Zero-Blk %", &format!("{:.1}%", row.variance_zero_block_pct), tc),
+        detail_line(
+            "Service/day",
+            &format!("${:.2}", row.service_cost_usd_day),
+            tc,
+        ),
+        detail_line(
+            "Zero-Blk %",
+            &format!("{:.1}%", row.variance_zero_block_pct),
+            tc,
+        ),
     ])
     .block(
         Block::default()
@@ -906,10 +1040,22 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
             &format_liquidity(row.coin.market_cap_usd, row.coin.volume_24h_usd),
             tc,
         ),
-        detail_line("Block Time", &format!("{:.0}s", row.coin.block_time_sec), tc),
+        detail_line(
+            "Block Time",
+            &format!("{:.0}s", row.coin.block_time_sec),
+            tc,
+        ),
         detail_line("Block Reward", &format!("{:.4}", row.coin.block_reward), tc),
-        detail_line("24h Price", &format!("{:+.1}%", row.coin.price_trend_pct), tc),
-        detail_line("24h Difficulty", &format!("{:+.1}%", row.coin.difficulty_trend_pct), tc),
+        detail_line(
+            "24h Price",
+            &format!("{:+.1}%", row.coin.price_trend_pct),
+            tc,
+        ),
+        detail_line(
+            "24h Difficulty",
+            &format!("{:+.1}%", row.coin.difficulty_trend_pct),
+            tc,
+        ),
         detail_line("Rig", &row.rig_name, tc),
         detail_line("Payout", row.method.payout_mode.label(), tc),
     ])
@@ -923,7 +1069,9 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     .wrap(Wrap { trim: false });
 
     if stacked_detail {
-        let top_height = economics_height_needed.min(sections[2].height.saturating_sub(4)).max(4);
+        let top_height = economics_height_needed
+            .min(sections[2].height.saturating_sub(4))
+            .max(4);
         let middle = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(top_height), Constraint::Min(4)])
@@ -942,18 +1090,33 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     let mut reason_lines = vec![
         Line::from(vec![
             Span::styled("Profit ", Style::default().fg(tc.muted)),
-            Span::styled(format!("{:.0}", row.profit_score), Style::default().fg(tc.good)),
+            Span::styled(
+                format!("{:.0}", row.profit_score),
+                Style::default().fg(tc.good),
+            ),
             Span::styled(" | Liquidity ", Style::default().fg(tc.muted)),
-            Span::styled(format!("{:.0}", row.liquidity_score), Style::default().fg(tc.accent)),
+            Span::styled(
+                format!("{:.0}", row.liquidity_score),
+                Style::default().fg(tc.accent),
+            ),
             Span::styled(" | Trend ", Style::default().fg(tc.muted)),
-            Span::styled(format!("{:.0}", row.trend_score), Style::default().fg(tc.warning)),
+            Span::styled(
+                format!("{:.0}", row.trend_score),
+                Style::default().fg(tc.warning),
+            ),
             Span::styled(" | Stability ", Style::default().fg(tc.muted)),
-            Span::styled(format!("{:.0}", row.stability_score), Style::default().fg(tc.info)),
+            Span::styled(
+                format!("{:.0}", row.stability_score),
+                Style::default().fg(tc.info),
+            ),
         ]),
         Line::from(""),
     ];
     for reason in row.reason_lines() {
-        reason_lines.push(Line::from(Span::styled(format!("- {}", reason), Style::default().fg(tc.fg))));
+        reason_lines.push(Line::from(Span::styled(
+            format!("- {}", reason),
+            Style::default().fg(tc.fg),
+        )));
     }
     reason_lines.push(Line::from(""));
     reason_lines.push(Line::from(Span::styled(
@@ -972,7 +1135,10 @@ fn draw_detail(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     reason_lines.push(Line::from(Span::styled(
         format!(
             "Benchmark: {} | {} | p50 monthly ${:.2} | p90 ${:.2}",
-            row.benchmark_miner, row.benchmark_tuning, row.variance_p50_usd_month, row.variance_p90_usd_month
+            row.benchmark_miner,
+            row.benchmark_tuning,
+            row.variance_p50_usd_month,
+            row.variance_p90_usd_month
         ),
         Style::default().fg(tc.muted),
     )));
@@ -1021,10 +1187,7 @@ fn detail_line(label: &str, value: &str, tc: &ThemeColors) -> Line<'static> {
 
 fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
     let (keys, mode_text) = match app.input_mode {
-        InputMode::Normal => (
-            normal_mode_keys(area.width),
-            "NORMAL".to_string(),
-        ),
+        InputMode::Normal => (normal_mode_keys(area.width), "NORMAL".to_string()),
         InputMode::Search => (
             " type:search  Enter/Esc:done  Ctrl-U:clear".to_string(),
             "SEARCH".to_string(),
@@ -1041,7 +1204,10 @@ fn draw_status_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
 
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Min(20), Constraint::Length((app.status_message.len() as u16 + 3).min(area.width / 2))])
+        .constraints([
+            Constraint::Min(20),
+            Constraint::Length((app.status_message.len() as u16 + 3).min(area.width / 2)),
+        ])
         .split(area);
 
     let status_line = Line::from(vec![
@@ -1148,7 +1314,11 @@ fn draw_checkbox_popup(
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(tc.accent_secondary))
                 .title(title)
-                .title_style(Style::default().fg(tc.accent_secondary).add_modifier(Modifier::BOLD)),
+                .title_style(
+                    Style::default()
+                        .fg(tc.accent_secondary)
+                        .add_modifier(Modifier::BOLD),
+                ),
         ),
         popup,
     );
@@ -1208,7 +1378,13 @@ fn truncate(value: &str, width: usize) -> String {
     if char_count <= width {
         value.to_string()
     } else {
-        format!("{}...", value.chars().take(width.saturating_sub(3)).collect::<String>())
+        format!(
+            "{}...",
+            value
+                .chars()
+                .take(width.saturating_sub(3))
+                .collect::<String>()
+        )
     }
 }
 
@@ -1341,13 +1517,15 @@ fn wrapped_line_count(text: &str, width: usize) -> u16 {
         for word in line.split_whitespace() {
             let word_len = word.chars().count();
             if current == 0 {
-                line_count = line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
+                line_count =
+                    line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
                 current = ((word_len.saturating_sub(1)) % width) + 1;
             } else if current + 1 + word_len <= width {
                 current += 1 + word_len;
             } else {
                 line_count = line_count.saturating_add(1);
-                line_count = line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
+                line_count =
+                    line_count.saturating_add(((word_len.saturating_sub(1)) / width) as u16);
                 current = ((word_len.saturating_sub(1)) % width) + 1;
             }
         }

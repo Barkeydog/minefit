@@ -11,14 +11,13 @@ use std::sync::{LazyLock, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 const HASHRATE_CPU_SYMBOLS: &[&str] = &[
-    "EPIC", "XTM-RX", "DERO", "XMR", "SAL", "QRL", "ZEPH", "VRSC", "ETI", "FBIT", "RTM",
-    "SCASH", "XKR", "XEL",
+    "EPIC", "XTM-RX", "DERO", "XMR", "SAL", "QRL", "ZEPH", "VRSC", "ETI", "FBIT", "RTM", "SCASH",
+    "XKR", "XEL",
 ];
 const HASHRATE_TIER_ONE_MIN_VOLUME_USD: f64 = 1_000.0;
 const MININGPOOLSTATS_HOME_URL: &str = "https://miningpoolstats.stream/";
 const MININGPOOLSTATS_DATA_BASE_URL: &str = "https://data.miningpoolstats.stream/data";
-const MININGPOOLSTATS_BROWSER_UA: &str =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36";
+const MININGPOOLSTATS_BROWSER_UA: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36";
 const MININGPOOLSTATS_MIN_MARKET_CAP_USD: f64 = 10_000.0;
 const MININGPOOLSTATS_MIN_VOLUME_USD: f64 = 100.0;
 const SNAPSHOT_CACHE_SCHEMA_VERSION: u32 = 2;
@@ -269,53 +268,899 @@ fn technique(
 
 pub static METHODS: LazyLock<Vec<MiningMethod>> = LazyLock::new(|| {
     vec![
-        technique("gpu-core-pplns", "GPU Core PPLNS", MiningStrategy::Pool, PayoutMode::Pplns, "Baseline always-on GPU pool strategy with balanced fee and stale-share assumptions.", 0.009, 0.65, 99.5, 100.0, 1.00, 1.00, 0.00, 0.0, 0.0, "Modeled from large global GPU pools", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-global-pps", "GPU Global PPS+", MiningStrategy::Pool, PayoutMode::PpsPlus, "Lower-variance GPU pool envelope that sacrifices a bit of fee for smoother payouts.", 0.012, 0.50, 99.7, 100.0, 1.00, 1.02, 0.00, 0.0, 2.5, "Modeled from low-variance GPU pool fee bands", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-low-latency", "GPU Low-Latency", MiningStrategy::Pool, PayoutMode::Pplns, "Nearby-server GPU routing with tighter stale-share control and slightly better uptime.", 0.010, 0.35, 99.8, 100.0, 1.00, 1.00, -0.10, 0.0, 2.0, "Modeled from region-optimized stratum setups", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-auto-exchange", "GPU Auto-Exchange", MiningStrategy::Pool, PayoutMode::Marketplace, "Mine a supported GPU coin and auto-convert it on payout for simpler cashflow.", 0.020, 0.60, 99.5, 100.0, 1.00, 1.00, 0.10, 0.0, 1.0, "Modeled from auto-exchange pool payout bands", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-marketplace", "GPU Marketplace", MiningStrategy::Pool, PayoutMode::Marketplace, "Sell GPU hashrate into a marketplace-style venue with instant buyer-side settlement.", 0.030, 0.45, 99.7, 100.0, 0.99, 1.00, 0.00, 0.0, 1.5, "Modeled from hashrate marketplace spreads", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-eco-undervolt", "GPU Eco Undervolt", MiningStrategy::Pool, PayoutMode::Pplns, "Undervolted GPU tuning that trims watts faster than hashrate for better net economics.", 0.010, 0.55, 99.4, 100.0, 0.94, 0.78, 0.00, 0.0, 2.2, "Modeled from modern low-watt GPU tuning envelopes", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-balanced-lock", "GPU Balanced Lock", MiningStrategy::Pool, PayoutMode::Pplns, "Conservative core-lock profile meant to preserve most yield while improving efficiency.", 0.009, 0.45, 99.6, 100.0, 1.00, 0.90, -0.05, 0.0, 1.8, "Modeled from balanced GPU lock profiles", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-turbo-oc", "GPU Turbo OC", MiningStrategy::Pool, PayoutMode::Pplns, "Aggressive GPU overclock profile that chases top-line output at the cost of power and rejects.", 0.010, 0.95, 99.0, 100.0, 1.08, 1.18, 0.40, 0.0, 0.6, "Modeled from high-output GPU overclock profiles", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-proxy-stratum", "GPU Proxy Stratum", MiningStrategy::Pool, PayoutMode::Pplns, "Proxy-routed GPU stratum path with slightly lower latency and cleaner share timing.", 0.008, 0.30, 99.8, 100.0, 1.00, 1.00, -0.10, 0.0, 1.6, "Modeled from local proxy and stratum relay setups", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-small-pool-prop", "GPU Small-Pool PROP", MiningStrategy::Pool, PayoutMode::Prop, "Smaller pool exposure with thinner fees but more payout wobble and occasional stale drift.", 0.005, 0.90, 98.7, 100.0, 1.00, 1.00, 0.10, 0.0, -0.4, "Modeled from smaller PROP-style GPU pools", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-alt-niche", "GPU Alt-Niche Pool", MiningStrategy::Pool, PayoutMode::Pplns, "Niche-algo GPU pool route where algo coverage is wide but infra quality is less uniform.", 0.011, 0.80, 99.2, 100.0, 1.01, 1.00, 0.10, 0.0, 0.8, "Modeled from niche GPU algo pool rosters", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-weekend-burst", "GPU Weekend Burst", MiningStrategy::Pool, PayoutMode::Pplns, "Partial-duty GPU schedule that favors higher-output windows instead of seven-day uptime.", 0.010, 0.55, 99.5, 55.0, 1.05, 1.08, 0.15, 0.0, -0.2, "Modeled from time-window GPU mining schedules", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-night-window", "GPU Night Window", MiningStrategy::Pool, PayoutMode::Pplns, "Night-only GPU operation tuned for cheaper hours and quieter thermals.", 0.009, 0.45, 99.6, 50.0, 0.97, 0.82, 0.00, 0.0, 1.0, "Modeled from off-peak GPU mining schedules", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-hosted-rack", "GPU Hosted Rack", MiningStrategy::Hosted, PayoutMode::PpsPlus, "Managed GPU rack where uptime is strong but hosting overhead trims net returns.", 0.000, 0.40, 99.0, 100.0, 0.98, 1.05, 0.00, 0.95, -0.8, "Modeled from GPU hosting and colo service bands", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-solo-pool", "GPU Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Solo-pool GPU route with pooled routing convenience but full block variance.", 0.010, 0.70, 99.3, 100.0, 1.00, 1.00, 0.10, 0.0, -4.0, "Modeled from solo-pool GPU routing", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("gpu-solo-node", "GPU Solo Node", MiningStrategy::Solo, PayoutMode::SoloNode, "Direct-node GPU mining with no pool fee and the highest payout variance.", 0.000, 1.10, 98.5, 100.0, 1.00, 1.00, 0.20, 0.03, -6.0, "Inference from direct-node GPU mining assumptions", SUPPORTED_GPU_GENERAL, RIGS_GPU_ONLY),
-        technique("cpu-core-pplns", "CPU Core PPLNS", MiningStrategy::Pool, PayoutMode::Pplns, "Baseline always-on CPU pool strategy across cache-sensitive algorithms.", 0.009, 0.80, 99.2, 100.0, 1.00, 1.00, 0.00, 0.0, 1.0, "Modeled from established CPU pool fee bands", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-smooth-pps", "CPU Smooth PPS+", MiningStrategy::Pool, PayoutMode::PpsPlus, "Lower-variance CPU payout route that trades a bit of fee for steadier cashflow.", 0.012, 0.60, 99.4, 100.0, 1.00, 1.02, 0.00, 0.0, 2.0, "Modeled from low-variance CPU pool envelopes", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-auto-switch", "CPU Auto-Switch", MiningStrategy::Pool, PayoutMode::Marketplace, "Rotate between supported CPU-first algorithms and auto-payout the strongest route.", 0.018, 0.75, 99.2, 100.0, 1.02, 1.02, 0.10, 0.0, 1.4, "Modeled from CPU auto-switching pool behavior", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-cache-tuned", "CPU Cache-Tuned", MiningStrategy::Pool, PayoutMode::Pplns, "Cache-aware thread pinning and memory tuning that nudges CPU efficiency upward.", 0.009, 0.65, 99.5, 100.0, 1.04, 0.97, -0.05, 0.0, 1.8, "Modeled from tuned CPU miner deployments", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-hugepages-turbo", "CPU HugePages Turbo", MiningStrategy::Pool, PayoutMode::Pplns, "Aggressive huge-pages and thread tuning for higher CPU output and more heat.", 0.009, 0.85, 99.0, 100.0, 1.10, 1.12, 0.25, 0.0, 0.5, "Modeled from maximum-throughput CPU configurations", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-eco-background", "CPU Eco Background", MiningStrategy::Pool, PayoutMode::Pplns, "Background CPU mining that leaves headroom for desktop responsiveness and thermals.", 0.009, 0.70, 99.6, 100.0, 0.88, 0.65, 0.00, 0.0, 1.6, "Modeled from low-impact desktop CPU mining", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-night-window", "CPU Night Window", MiningStrategy::Pool, PayoutMode::Pplns, "Overnight-only CPU schedule that avoids daytime contention and higher room loads.", 0.010, 0.60, 99.5, 45.0, 0.96, 0.78, 0.00, 0.0, 0.8, "Modeled from overnight CPU mining schedules", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-proxy-pool", "CPU Proxy Pool", MiningStrategy::Pool, PayoutMode::Pplns, "Local proxy route for CPU miners that trims share latency and keeps config centralized.", 0.008, 0.35, 99.8, 100.0, 1.00, 1.00, -0.10, 0.0, 1.6, "Modeled from proxied CPU miner farms", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-p2pool-mini", "CPU P2Pool Mini", MiningStrategy::Pool, PayoutMode::Prop, "Decentralized CPU mini-pool route with lower operator overhead and choppier payouts.", 0.005, 1.00, 98.5, 100.0, 1.00, 1.00, 0.10, 0.0, -0.6, "Modeled from decentralized CPU pool networks", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-mixed-algo", "CPU Mixed-Algorithm", MiningStrategy::Pool, PayoutMode::Marketplace, "Broader CPU algorithm rotation that prioritizes whichever supported chain clears best.", 0.020, 0.75, 99.0, 100.0, 1.03, 1.01, 0.10, 0.0, 1.0, "Modeled from mixed-algorithm CPU routing", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-hosted-farm", "CPU Hosted Thread Farm", MiningStrategy::Hosted, PayoutMode::PpsPlus, "Remote CPU nodes with managed uptime and a hosting surcharge layered on top.", 0.000, 0.55, 98.8, 100.0, 0.99, 1.04, 0.00, 0.55, -0.7, "Modeled from hosted CPU fleet pricing", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-solo-pool", "CPU Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Reference solo-pool envelope for CPU-first chains with full block variance.", 0.010, 0.90, 99.1, 100.0, 1.00, 1.00, 0.10, 0.0, -4.0, "Modeled from solo-pool CPU mining assumptions", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("cpu-solo-node", "CPU Solo Node", MiningStrategy::Solo, PayoutMode::SoloNode, "Direct-node CPU mining with no pool fee and maximum payout variance.", 0.000, 1.20, 98.2, 100.0, 1.00, 1.00, 0.20, 0.02, -6.5, "Inference from direct-node CPU mining assumptions", SUPPORTED_CPU, RIGS_CPU_ONLY),
-        technique("sha256-pool-pps", "SHA256 Pool PPS+", MiningStrategy::Pool, PayoutMode::PpsPlus, "Software or ASIC SHA256 mining into a steady PPS+ payout envelope.", 0.025, 0.40, 99.7, 100.0, 1.00, 1.00, 0.00, 0.0, 1.6, "Modeled from large SHA256 pool fee bands", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-pool-fpps", "SHA256 Pool FPPS", MiningStrategy::Pool, PayoutMode::Fpps, "Fee-smoothed SHA256 envelope that includes transaction-fee sharing in expectation.", 0.028, 0.35, 99.8, 100.0, 1.00, 1.00, 0.00, 0.0, 2.0, "Modeled from FPPS-style SHA256 payouts", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-marketplace", "SHA256 Marketplace", MiningStrategy::Pool, PayoutMode::Marketplace, "Sell SHA256 capacity into a marketplace-style venue instead of mining pure coin flow.", 0.035, 0.45, 99.7, 100.0, 0.99, 1.00, 0.05, 0.0, 1.0, "Modeled from SHA256 marketplace spreads", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-proxy-score", "SHA256 Proxy Score", MiningStrategy::Pool, PayoutMode::Pplns, "Proxy-routed SHA256 path with score-style behavior and lower network overhead.", 0.018, 0.25, 99.8, 100.0, 1.00, 1.00, -0.05, 0.0, 1.3, "Modeled from score-based SHA256 pool setups", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-eco-window", "SHA256 Eco Window", MiningStrategy::Pool, PayoutMode::Pplns, "Partial-duty SHA256 operation limited to the best hours of the day.", 0.022, 0.35, 99.6, 50.0, 0.95, 0.80, 0.00, 0.0, 0.8, "Modeled from windowed SHA256 mining schedules", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-hosted-contract", "SHA256 Hosted Contract", MiningStrategy::Hosted, PayoutMode::Fpps, "Hosted SHA256 capacity with facility overhead layered onto otherwise stable pool economics.", 0.000, 0.30, 99.5, 100.0, 0.98, 1.04, 0.00, 2.40, -0.8, "Modeled from hosted SHA256 fleet contracts", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-solo-pool", "SHA256 Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Solo-pool SHA256 mode with full variance and pool-side routing convenience.", 0.010, 0.35, 99.6, 100.0, 1.00, 1.00, 0.05, 0.0, -3.0, "Modeled from solo-pool SHA256 operation", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("sha256-solo-node", "SHA256 Solo Node", MiningStrategy::Solo, PayoutMode::SoloNode, "Direct-node SHA256 mining with no pool fee and extreme variance.", 0.000, 0.50, 98.9, 100.0, 1.00, 1.00, 0.10, 0.05, -6.0, "Inference from direct-node SHA256 assumptions", SUPPORTED_SHA256, RIGS_CPU_GPU_ASIC),
-        technique("scrypt-pool-pps", "Scrypt Pool PPS+", MiningStrategy::Pool, PayoutMode::PpsPlus, "Always-on Scrypt pool route with stable payout assumptions.", 0.022, 0.35, 99.7, 100.0, 1.00, 1.00, 0.00, 0.0, 1.8, "Modeled from large Scrypt pool fee bands", SUPPORTED_SCRYPT, RIGS_ASIC_ONLY),
-        technique("scrypt-auto-profit", "Scrypt Auto-Profit", MiningStrategy::Pool, PayoutMode::Marketplace, "Auto-profit Scrypt route that optimizes for sellable output over pure coin loyalty.", 0.030, 0.45, 99.4, 100.0, 0.99, 1.02, 0.05, 0.0, 0.9, "Modeled from auto-profit Scrypt venues", SUPPORTED_SCRYPT, RIGS_ASIC_ONLY),
-        technique("scrypt-hosted-contract", "Scrypt Hosted Contract", MiningStrategy::Hosted, PayoutMode::Fpps, "Hosted Scrypt operation with strong uptime and a facility surcharge.", 0.000, 0.30, 99.5, 100.0, 0.98, 1.04, 0.00, 2.10, -0.8, "Modeled from hosted Scrypt contracts", SUPPORTED_SCRYPT, RIGS_ASIC_ONLY),
-        technique("scrypt-solo-pool", "Scrypt Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Solo-pool Scrypt mining where variance quickly dominates operator experience.", 0.010, 0.40, 99.5, 100.0, 1.00, 1.00, 0.05, 0.0, -3.2, "Modeled from solo-pool Scrypt operation", SUPPORTED_SCRYPT, RIGS_ASIC_ONLY),
-        technique("kheavy-pool-pplns", "KHeavy Pool PPLNS", MiningStrategy::Pool, PayoutMode::Pplns, "Baseline KHeavyHash pool envelope for always-on operation.", 0.010, 0.45, 99.6, 100.0, 1.00, 1.00, 0.00, 0.0, 1.2, "Modeled from KHeavyHash pool fee bands", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
-        technique("kheavy-pool-fpps", "KHeavy Pool FPPS", MiningStrategy::Pool, PayoutMode::Fpps, "Lower-variance KHeavyHash payout route that favors steadier realized cashflow.", 0.015, 0.35, 99.7, 100.0, 1.00, 1.00, 0.00, 0.0, 2.0, "Modeled from KHeavyHash FPPS-style payouts", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
-        technique("kheavy-hosted-contract", "KHeavy Hosted Contract", MiningStrategy::Hosted, PayoutMode::Fpps, "Hosted KHeavyHash capacity with managed uptime and an external facility fee.", 0.000, 0.30, 99.3, 100.0, 0.98, 1.04, 0.00, 1.60, -0.6, "Modeled from hosted KHeavyHash pricing", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
-        technique("kheavy-solo-pool", "KHeavy Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Solo-pool KHeavyHash route where payout variance dominates expected value.", 0.010, 0.40, 99.5, 100.0, 1.00, 1.00, 0.05, 0.0, -3.0, "Modeled from solo-pool KHeavyHash operation", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
-        technique("discovery-proxy", "Discovery Proxy", MiningStrategy::Pool, PayoutMode::Marketplace, "Inferred long-tail ranking row built from market rank, liquidity, and trend when validated mining telemetry is missing.", 0.020, 0.90, 98.5, 100.0, 1.00, 1.00, 0.10, 0.0, -18.0, "CoinPaprika paged tickers plus minefit inference", SUPPORTED_DISCOVERY, RIGS_CPU_GPU_ASIC),
-        technique("solo-node", "Solo Node", MiningStrategy::Solo, PayoutMode::SoloNode, "Generic direct-node fallback for any validated benchmark and algorithm pair.", 0.000, 1.10, 98.5, 100.0, 1.00, 1.00, 0.15, 0.03, -7.0, "Inference from direct-node mining assumptions", SUPPORTED_SOLO, RIGS_ALL),
+        technique(
+            "gpu-core-pplns",
+            "GPU Core PPLNS",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Baseline always-on GPU pool strategy with balanced fee and stale-share assumptions.",
+            0.009,
+            0.65,
+            99.5,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            0.0,
+            "Modeled from large global GPU pools",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-global-pps",
+            "GPU Global PPS+",
+            MiningStrategy::Pool,
+            PayoutMode::PpsPlus,
+            "Lower-variance GPU pool envelope that sacrifices a bit of fee for smoother payouts.",
+            0.012,
+            0.50,
+            99.7,
+            100.0,
+            1.00,
+            1.02,
+            0.00,
+            0.0,
+            2.5,
+            "Modeled from low-variance GPU pool fee bands",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-low-latency",
+            "GPU Low-Latency",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Nearby-server GPU routing with tighter stale-share control and slightly better uptime.",
+            0.010,
+            0.35,
+            99.8,
+            100.0,
+            1.00,
+            1.00,
+            -0.10,
+            0.0,
+            2.0,
+            "Modeled from region-optimized stratum setups",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-auto-exchange",
+            "GPU Auto-Exchange",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Mine a supported GPU coin and auto-convert it on payout for simpler cashflow.",
+            0.020,
+            0.60,
+            99.5,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            1.0,
+            "Modeled from auto-exchange pool payout bands",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-marketplace",
+            "GPU Marketplace",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Sell GPU hashrate into a marketplace-style venue with instant buyer-side settlement.",
+            0.030,
+            0.45,
+            99.7,
+            100.0,
+            0.99,
+            1.00,
+            0.00,
+            0.0,
+            1.5,
+            "Modeled from hashrate marketplace spreads",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-eco-undervolt",
+            "GPU Eco Undervolt",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Undervolted GPU tuning that trims watts faster than hashrate for better net economics.",
+            0.010,
+            0.55,
+            99.4,
+            100.0,
+            0.94,
+            0.78,
+            0.00,
+            0.0,
+            2.2,
+            "Modeled from modern low-watt GPU tuning envelopes",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-balanced-lock",
+            "GPU Balanced Lock",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Conservative core-lock profile meant to preserve most yield while improving efficiency.",
+            0.009,
+            0.45,
+            99.6,
+            100.0,
+            1.00,
+            0.90,
+            -0.05,
+            0.0,
+            1.8,
+            "Modeled from balanced GPU lock profiles",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-turbo-oc",
+            "GPU Turbo OC",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Aggressive GPU overclock profile that chases top-line output at the cost of power and rejects.",
+            0.010,
+            0.95,
+            99.0,
+            100.0,
+            1.08,
+            1.18,
+            0.40,
+            0.0,
+            0.6,
+            "Modeled from high-output GPU overclock profiles",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-proxy-stratum",
+            "GPU Proxy Stratum",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Proxy-routed GPU stratum path with slightly lower latency and cleaner share timing.",
+            0.008,
+            0.30,
+            99.8,
+            100.0,
+            1.00,
+            1.00,
+            -0.10,
+            0.0,
+            1.6,
+            "Modeled from local proxy and stratum relay setups",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-small-pool-prop",
+            "GPU Small-Pool PROP",
+            MiningStrategy::Pool,
+            PayoutMode::Prop,
+            "Smaller pool exposure with thinner fees but more payout wobble and occasional stale drift.",
+            0.005,
+            0.90,
+            98.7,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            -0.4,
+            "Modeled from smaller PROP-style GPU pools",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-alt-niche",
+            "GPU Alt-Niche Pool",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Niche-algo GPU pool route where algo coverage is wide but infra quality is less uniform.",
+            0.011,
+            0.80,
+            99.2,
+            100.0,
+            1.01,
+            1.00,
+            0.10,
+            0.0,
+            0.8,
+            "Modeled from niche GPU algo pool rosters",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-weekend-burst",
+            "GPU Weekend Burst",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Partial-duty GPU schedule that favors higher-output windows instead of seven-day uptime.",
+            0.010,
+            0.55,
+            99.5,
+            55.0,
+            1.05,
+            1.08,
+            0.15,
+            0.0,
+            -0.2,
+            "Modeled from time-window GPU mining schedules",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-night-window",
+            "GPU Night Window",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Night-only GPU operation tuned for cheaper hours and quieter thermals.",
+            0.009,
+            0.45,
+            99.6,
+            50.0,
+            0.97,
+            0.82,
+            0.00,
+            0.0,
+            1.0,
+            "Modeled from off-peak GPU mining schedules",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-hosted-rack",
+            "GPU Hosted Rack",
+            MiningStrategy::Hosted,
+            PayoutMode::PpsPlus,
+            "Managed GPU rack where uptime is strong but hosting overhead trims net returns.",
+            0.000,
+            0.40,
+            99.0,
+            100.0,
+            0.98,
+            1.05,
+            0.00,
+            0.95,
+            -0.8,
+            "Modeled from GPU hosting and colo service bands",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-solo-pool",
+            "GPU Solo Pool",
+            MiningStrategy::Solo,
+            PayoutMode::SoloPool,
+            "Solo-pool GPU route with pooled routing convenience but full block variance.",
+            0.010,
+            0.70,
+            99.3,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            -4.0,
+            "Modeled from solo-pool GPU routing",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "gpu-solo-node",
+            "GPU Solo Node",
+            MiningStrategy::Solo,
+            PayoutMode::SoloNode,
+            "Direct-node GPU mining with no pool fee and the highest payout variance.",
+            0.000,
+            1.10,
+            98.5,
+            100.0,
+            1.00,
+            1.00,
+            0.20,
+            0.03,
+            -6.0,
+            "Inference from direct-node GPU mining assumptions",
+            SUPPORTED_GPU_GENERAL,
+            RIGS_GPU_ONLY,
+        ),
+        technique(
+            "cpu-core-pplns",
+            "CPU Core PPLNS",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Baseline always-on CPU pool strategy across cache-sensitive algorithms.",
+            0.009,
+            0.80,
+            99.2,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            1.0,
+            "Modeled from established CPU pool fee bands",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-smooth-pps",
+            "CPU Smooth PPS+",
+            MiningStrategy::Pool,
+            PayoutMode::PpsPlus,
+            "Lower-variance CPU payout route that trades a bit of fee for steadier cashflow.",
+            0.012,
+            0.60,
+            99.4,
+            100.0,
+            1.00,
+            1.02,
+            0.00,
+            0.0,
+            2.0,
+            "Modeled from low-variance CPU pool envelopes",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-auto-switch",
+            "CPU Auto-Switch",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Rotate between supported CPU-first algorithms and auto-payout the strongest route.",
+            0.018,
+            0.75,
+            99.2,
+            100.0,
+            1.02,
+            1.02,
+            0.10,
+            0.0,
+            1.4,
+            "Modeled from CPU auto-switching pool behavior",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-cache-tuned",
+            "CPU Cache-Tuned",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Cache-aware thread pinning and memory tuning that nudges CPU efficiency upward.",
+            0.009,
+            0.65,
+            99.5,
+            100.0,
+            1.04,
+            0.97,
+            -0.05,
+            0.0,
+            1.8,
+            "Modeled from tuned CPU miner deployments",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-hugepages-turbo",
+            "CPU HugePages Turbo",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Aggressive huge-pages and thread tuning for higher CPU output and more heat.",
+            0.009,
+            0.85,
+            99.0,
+            100.0,
+            1.10,
+            1.12,
+            0.25,
+            0.0,
+            0.5,
+            "Modeled from maximum-throughput CPU configurations",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-eco-background",
+            "CPU Eco Background",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Background CPU mining that leaves headroom for desktop responsiveness and thermals.",
+            0.009,
+            0.70,
+            99.6,
+            100.0,
+            0.88,
+            0.65,
+            0.00,
+            0.0,
+            1.6,
+            "Modeled from low-impact desktop CPU mining",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-night-window",
+            "CPU Night Window",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Overnight-only CPU schedule that avoids daytime contention and higher room loads.",
+            0.010,
+            0.60,
+            99.5,
+            45.0,
+            0.96,
+            0.78,
+            0.00,
+            0.0,
+            0.8,
+            "Modeled from overnight CPU mining schedules",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-proxy-pool",
+            "CPU Proxy Pool",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Local proxy route for CPU miners that trims share latency and keeps config centralized.",
+            0.008,
+            0.35,
+            99.8,
+            100.0,
+            1.00,
+            1.00,
+            -0.10,
+            0.0,
+            1.6,
+            "Modeled from proxied CPU miner farms",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-p2pool-mini",
+            "CPU P2Pool Mini",
+            MiningStrategy::Pool,
+            PayoutMode::Prop,
+            "Decentralized CPU mini-pool route with lower operator overhead and choppier payouts.",
+            0.005,
+            1.00,
+            98.5,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            -0.6,
+            "Modeled from decentralized CPU pool networks",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-mixed-algo",
+            "CPU Mixed-Algorithm",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Broader CPU algorithm rotation that prioritizes whichever supported chain clears best.",
+            0.020,
+            0.75,
+            99.0,
+            100.0,
+            1.03,
+            1.01,
+            0.10,
+            0.0,
+            1.0,
+            "Modeled from mixed-algorithm CPU routing",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-hosted-farm",
+            "CPU Hosted Thread Farm",
+            MiningStrategy::Hosted,
+            PayoutMode::PpsPlus,
+            "Remote CPU nodes with managed uptime and a hosting surcharge layered on top.",
+            0.000,
+            0.55,
+            98.8,
+            100.0,
+            0.99,
+            1.04,
+            0.00,
+            0.55,
+            -0.7,
+            "Modeled from hosted CPU fleet pricing",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-solo-pool",
+            "CPU Solo Pool",
+            MiningStrategy::Solo,
+            PayoutMode::SoloPool,
+            "Reference solo-pool envelope for CPU-first chains with full block variance.",
+            0.010,
+            0.90,
+            99.1,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            -4.0,
+            "Modeled from solo-pool CPU mining assumptions",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "cpu-solo-node",
+            "CPU Solo Node",
+            MiningStrategy::Solo,
+            PayoutMode::SoloNode,
+            "Direct-node CPU mining with no pool fee and maximum payout variance.",
+            0.000,
+            1.20,
+            98.2,
+            100.0,
+            1.00,
+            1.00,
+            0.20,
+            0.02,
+            -6.5,
+            "Inference from direct-node CPU mining assumptions",
+            SUPPORTED_CPU,
+            RIGS_CPU_ONLY,
+        ),
+        technique(
+            "sha256-pool-pps",
+            "SHA256 Pool PPS+",
+            MiningStrategy::Pool,
+            PayoutMode::PpsPlus,
+            "Software or ASIC SHA256 mining into a steady PPS+ payout envelope.",
+            0.025,
+            0.40,
+            99.7,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            1.6,
+            "Modeled from large SHA256 pool fee bands",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-pool-fpps",
+            "SHA256 Pool FPPS",
+            MiningStrategy::Pool,
+            PayoutMode::Fpps,
+            "Fee-smoothed SHA256 envelope that includes transaction-fee sharing in expectation.",
+            0.028,
+            0.35,
+            99.8,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            2.0,
+            "Modeled from FPPS-style SHA256 payouts",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-marketplace",
+            "SHA256 Marketplace",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Sell SHA256 capacity into a marketplace-style venue instead of mining pure coin flow.",
+            0.035,
+            0.45,
+            99.7,
+            100.0,
+            0.99,
+            1.00,
+            0.05,
+            0.0,
+            1.0,
+            "Modeled from SHA256 marketplace spreads",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-proxy-score",
+            "SHA256 Proxy Score",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Proxy-routed SHA256 path with score-style behavior and lower network overhead.",
+            0.018,
+            0.25,
+            99.8,
+            100.0,
+            1.00,
+            1.00,
+            -0.05,
+            0.0,
+            1.3,
+            "Modeled from score-based SHA256 pool setups",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-eco-window",
+            "SHA256 Eco Window",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Partial-duty SHA256 operation limited to the best hours of the day.",
+            0.022,
+            0.35,
+            99.6,
+            50.0,
+            0.95,
+            0.80,
+            0.00,
+            0.0,
+            0.8,
+            "Modeled from windowed SHA256 mining schedules",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-hosted-contract",
+            "SHA256 Hosted Contract",
+            MiningStrategy::Hosted,
+            PayoutMode::Fpps,
+            "Hosted SHA256 capacity with facility overhead layered onto otherwise stable pool economics.",
+            0.000,
+            0.30,
+            99.5,
+            100.0,
+            0.98,
+            1.04,
+            0.00,
+            2.40,
+            -0.8,
+            "Modeled from hosted SHA256 fleet contracts",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-solo-pool",
+            "SHA256 Solo Pool",
+            MiningStrategy::Solo,
+            PayoutMode::SoloPool,
+            "Solo-pool SHA256 mode with full variance and pool-side routing convenience.",
+            0.010,
+            0.35,
+            99.6,
+            100.0,
+            1.00,
+            1.00,
+            0.05,
+            0.0,
+            -3.0,
+            "Modeled from solo-pool SHA256 operation",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "sha256-solo-node",
+            "SHA256 Solo Node",
+            MiningStrategy::Solo,
+            PayoutMode::SoloNode,
+            "Direct-node SHA256 mining with no pool fee and extreme variance.",
+            0.000,
+            0.50,
+            98.9,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.05,
+            -6.0,
+            "Inference from direct-node SHA256 assumptions",
+            SUPPORTED_SHA256,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "scrypt-pool-pps",
+            "Scrypt Pool PPS+",
+            MiningStrategy::Pool,
+            PayoutMode::PpsPlus,
+            "Always-on Scrypt pool route with stable payout assumptions.",
+            0.022,
+            0.35,
+            99.7,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            1.8,
+            "Modeled from large Scrypt pool fee bands",
+            SUPPORTED_SCRYPT,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "scrypt-auto-profit",
+            "Scrypt Auto-Profit",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Auto-profit Scrypt route that optimizes for sellable output over pure coin loyalty.",
+            0.030,
+            0.45,
+            99.4,
+            100.0,
+            0.99,
+            1.02,
+            0.05,
+            0.0,
+            0.9,
+            "Modeled from auto-profit Scrypt venues",
+            SUPPORTED_SCRYPT,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "scrypt-hosted-contract",
+            "Scrypt Hosted Contract",
+            MiningStrategy::Hosted,
+            PayoutMode::Fpps,
+            "Hosted Scrypt operation with strong uptime and a facility surcharge.",
+            0.000,
+            0.30,
+            99.5,
+            100.0,
+            0.98,
+            1.04,
+            0.00,
+            2.10,
+            -0.8,
+            "Modeled from hosted Scrypt contracts",
+            SUPPORTED_SCRYPT,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "scrypt-solo-pool",
+            "Scrypt Solo Pool",
+            MiningStrategy::Solo,
+            PayoutMode::SoloPool,
+            "Solo-pool Scrypt mining where variance quickly dominates operator experience.",
+            0.010,
+            0.40,
+            99.5,
+            100.0,
+            1.00,
+            1.00,
+            0.05,
+            0.0,
+            -3.2,
+            "Modeled from solo-pool Scrypt operation",
+            SUPPORTED_SCRYPT,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "kheavy-pool-pplns",
+            "KHeavy Pool PPLNS",
+            MiningStrategy::Pool,
+            PayoutMode::Pplns,
+            "Baseline KHeavyHash pool envelope for always-on operation.",
+            0.010,
+            0.45,
+            99.6,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            1.2,
+            "Modeled from KHeavyHash pool fee bands",
+            SUPPORTED_KHEAVY,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "kheavy-pool-fpps",
+            "KHeavy Pool FPPS",
+            MiningStrategy::Pool,
+            PayoutMode::Fpps,
+            "Lower-variance KHeavyHash payout route that favors steadier realized cashflow.",
+            0.015,
+            0.35,
+            99.7,
+            100.0,
+            1.00,
+            1.00,
+            0.00,
+            0.0,
+            2.0,
+            "Modeled from KHeavyHash FPPS-style payouts",
+            SUPPORTED_KHEAVY,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "kheavy-hosted-contract",
+            "KHeavy Hosted Contract",
+            MiningStrategy::Hosted,
+            PayoutMode::Fpps,
+            "Hosted KHeavyHash capacity with managed uptime and an external facility fee.",
+            0.000,
+            0.30,
+            99.3,
+            100.0,
+            0.98,
+            1.04,
+            0.00,
+            1.60,
+            -0.6,
+            "Modeled from hosted KHeavyHash pricing",
+            SUPPORTED_KHEAVY,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "kheavy-solo-pool",
+            "KHeavy Solo Pool",
+            MiningStrategy::Solo,
+            PayoutMode::SoloPool,
+            "Solo-pool KHeavyHash route where payout variance dominates expected value.",
+            0.010,
+            0.40,
+            99.5,
+            100.0,
+            1.00,
+            1.00,
+            0.05,
+            0.0,
+            -3.0,
+            "Modeled from solo-pool KHeavyHash operation",
+            SUPPORTED_KHEAVY,
+            RIGS_ASIC_ONLY,
+        ),
+        technique(
+            "discovery-proxy",
+            "Discovery Proxy",
+            MiningStrategy::Pool,
+            PayoutMode::Marketplace,
+            "Inferred long-tail ranking row built from market rank, liquidity, and trend when validated mining telemetry is missing.",
+            0.020,
+            0.90,
+            98.5,
+            100.0,
+            1.00,
+            1.00,
+            0.10,
+            0.0,
+            -18.0,
+            "CoinPaprika paged tickers plus minefit inference",
+            SUPPORTED_DISCOVERY,
+            RIGS_CPU_GPU_ASIC,
+        ),
+        technique(
+            "solo-node",
+            "Solo Node",
+            MiningStrategy::Solo,
+            PayoutMode::SoloNode,
+            "Generic direct-node fallback for any validated benchmark and algorithm pair.",
+            0.000,
+            1.10,
+            98.5,
+            100.0,
+            1.00,
+            1.00,
+            0.15,
+            0.03,
+            -7.0,
+            "Inference from direct-node mining assumptions",
+            SUPPORTED_SOLO,
+            RIGS_ALL,
+        ),
     ]
 });
 
@@ -419,7 +1264,12 @@ impl SnapshotCacheStatus {
                 .unwrap_or_else(|| "Startup cache hit.".to_string()),
             SnapshotLoadMode::CacheFallback => self
                 .cache_age_minutes
-                .map(|age| format!("Live refresh failed, using cached snapshot from {:.1} minutes ago.", age))
+                .map(|age| {
+                    format!(
+                        "Live refresh failed, using cached snapshot from {:.1} minutes ago.",
+                        age
+                    )
+                })
                 .unwrap_or_else(|| "Live refresh failed, using cached snapshot.".to_string()),
         }
     }
@@ -472,7 +1322,8 @@ impl MiningSnapshot {
         }
 
         let before_mps = coins.len();
-        let miningpoolstats = fetch_miningpoolstats_coins(btc_usd, &seen_symbols).unwrap_or_default();
+        let miningpoolstats =
+            fetch_miningpoolstats_coins(btc_usd, &seen_symbols).unwrap_or_default();
         for coin in miningpoolstats {
             if seen_symbols.insert(coin.symbol.clone()) {
                 coins.push(coin);
@@ -551,9 +1402,7 @@ impl MiningSnapshot {
 
 fn load_snapshot_with_cache(force_refresh: bool) -> Result<SnapshotLoad, String> {
     let cached = read_snapshot_cache();
-    if !force_refresh
-        && let Some((envelope, latest_path)) = &cached
-    {
+    if !force_refresh && let Some((envelope, latest_path)) = &cached {
         let age_secs = current_epoch_seconds().saturating_sub(envelope.fetched_at_epoch);
         if age_secs <= SNAPSHOT_CACHE_FRESH_SECS {
             return Ok(SnapshotLoad {
@@ -561,9 +1410,7 @@ fn load_snapshot_with_cache(force_refresh: bool) -> Result<SnapshotLoad, String>
                 status: SnapshotCacheStatus {
                     mode: SnapshotLoadMode::CacheWarm,
                     cache_age_minutes: Some(age_secs as f64 / 60.0),
-                    latest_snapshot_path: latest_path
-                        .to_str()
-                        .map(|path| path.to_string()),
+                    latest_snapshot_path: latest_path.to_str().map(|path| path.to_string()),
                 },
             });
         }
@@ -590,9 +1437,7 @@ fn load_snapshot_with_cache(force_refresh: bool) -> Result<SnapshotLoad, String>
                     status: SnapshotCacheStatus {
                         mode: SnapshotLoadMode::CacheFallback,
                         cache_age_minutes: Some(age_secs as f64 / 60.0),
-                        latest_snapshot_path: latest_path
-                            .to_str()
-                            .map(|path| path.to_string()),
+                        latest_snapshot_path: latest_path.to_str().map(|path| path.to_string()),
                     },
                 })
             } else {
@@ -741,7 +1586,9 @@ fn fetch_coinpaprika_market_catalog(
 
         let inferred_coin = market_overlays
             .get(&row.id)
-            .and_then(|ticker| infer_coinpaprika_mining_coin(ticker, btc_usd, &mut seen_display_symbols))
+            .and_then(|ticker| {
+                infer_coinpaprika_mining_coin(ticker, btc_usd, &mut seen_display_symbols)
+            })
             .or_else(|| infer_coinpaprika_catalog_coin(&row, btc_usd, &mut seen_display_symbols));
 
         if let Some(coin) = inferred_coin {
@@ -880,8 +1727,7 @@ fn fetch_whattomine_coins(btc_usd: f64, now_secs: f64) -> Result<Vec<MiningCoin>
             continue;
         }
 
-        let reference_hashrate_hs =
-            (reference_coin_per_day / daily_emission) * network_hashrate_hs;
+        let reference_hashrate_hs = (reference_coin_per_day / daily_emission) * network_hashrate_hs;
         if !reference_hashrate_hs.is_finite() || reference_hashrate_hs <= 0.0 {
             continue;
         }
@@ -972,7 +1818,8 @@ fn fetch_miningpoolstats_coins(
         let algorithm = canonicalize_algorithm(
             &string_value(raw.get("algo")).unwrap_or_else(|| "Unknown".to_string()),
         );
-        let network_hashrate_hs = number_value(raw.get("hashrate")).max(number_value(raw.get("ph")));
+        let network_hashrate_hs =
+            number_value(raw.get("hashrate")).max(number_value(raw.get("ph")));
         let block_time_sec =
             first_positive(&[number_value(raw.get("target")), number_value(raw.get("bt"))]);
         let price_usd = number_value(raw.get("pr"));
@@ -1036,16 +1883,15 @@ fn fetch_miningpoolstats_coins(
                 candidate.daily_emission / (86_400.0 / candidate.block_time_sec.max(f64::EPSILON));
         }
 
-        if (candidate.daily_emission <= 0.0 || candidate.block_reward <= 0.0) && !candidate.page.is_empty()
+        if (candidate.daily_emission <= 0.0 || candidate.block_reward <= 0.0)
+            && !candidate.page.is_empty()
         {
             if let Ok(page_json) = fetch_miningpoolstats_json(&format!(
                 "{MININGPOOLSTATS_DATA_BASE_URL}/{}.js?t={timestamp}",
                 candidate.page
             )) {
-                candidate.price_usd = first_positive(&[
-                    candidate.price_usd,
-                    number_value(page_json.get("price")),
-                ]);
+                candidate.price_usd =
+                    first_positive(&[candidate.price_usd, number_value(page_json.get("price"))]);
                 candidate.block_time_sec = first_positive(&[
                     candidate.block_time_sec,
                     number_value(page_json.get("block_time_target")),
@@ -1053,11 +1899,20 @@ fn fetch_miningpoolstats_coins(
                 ]);
                 candidate.daily_emission = first_positive(&[
                     candidate.daily_emission,
-                    number_value(page_json.get("supply").and_then(|supply| supply.get("emission24"))),
+                    number_value(
+                        page_json
+                            .get("supply")
+                            .and_then(|supply| supply.get("emission24")),
+                    ),
                 ]);
                 candidate.block_reward = first_positive(&[
                     candidate.block_reward,
-                    number_value(page_json.get("minerstat").and_then(Value::as_array).and_then(|stats| stats.get(2))),
+                    number_value(
+                        page_json
+                            .get("minerstat")
+                            .and_then(Value::as_array)
+                            .and_then(|stats| stats.get(2)),
+                    ),
                 ]);
                 if candidate.daily_emission <= 0.0
                     && candidate.block_reward > 0.0
@@ -1105,7 +1960,8 @@ fn build_miningpoolstats_coin(
 
     let blocks_per_day = 86_400.0 / candidate.block_time_sec.max(f64::EPSILON);
     let reference_hashrate_hs = 1.0;
-    let reference_coin_per_day = candidate.daily_emission / candidate.network_hashrate_hs.max(f64::EPSILON);
+    let reference_coin_per_day =
+        candidate.daily_emission / candidate.network_hashrate_hs.max(f64::EPSILON);
     let reference_btc_revenue =
         (reference_coin_per_day * candidate.price_usd) / btc_usd.max(f64::EPSILON);
     let profitability = reference_btc_revenue * 1_000_000_000_000.0;
@@ -1234,7 +2090,10 @@ fn infer_coinpaprika_mining_coin(
     let volume_factor = scaled_log_score(usd.volume_24h, 3.0, 11.0);
     let trend_factor = clamp((usd.percent_change_24h + 20.0) / 60.0, 0.0, 1.0);
     let proxy_usd_day = clamp(
-        0.015 + (rank_factor * 0.24) + (market_factor * 0.32) + (volume_factor * 0.28)
+        0.015
+            + (rank_factor * 0.24)
+            + (market_factor * 0.32)
+            + (volume_factor * 0.28)
             + (trend_factor * 0.10),
         0.01,
         0.95,
@@ -1246,7 +2105,8 @@ fn infer_coinpaprika_mining_coin(
     let block_time_sec = 60.0;
     let blocks_per_day = 86_400.0 / block_time_sec;
     let block_reward = daily_emission / blocks_per_day;
-    let display_symbol = unique_catalog_symbol(&ticker.symbol, ticker.rank as u32, seen_display_symbols);
+    let display_symbol =
+        unique_catalog_symbol(&ticker.symbol, ticker.rank as u32, seen_display_symbols);
 
     Some(MiningCoin {
         id: synthetic_coin_id(&ticker.id),
@@ -1270,7 +2130,8 @@ fn infer_coinpaprika_mining_coin(
         reference_hashrate_hs: 1.0,
         price_trend_pct: usd.percent_change_24h,
         difficulty_trend_pct: 0.0,
-        volatility: ((usd.percent_change_24h.abs() * 0.55) + (usd.percent_change_7d.abs() * 0.30)
+        volatility: ((usd.percent_change_24h.abs() * 0.55)
+            + (usd.percent_change_7d.abs() * 0.30)
             + (usd.percent_change_30d.abs() * 0.15))
             / 10.0,
         lagging: false,
@@ -1304,7 +2165,8 @@ fn infer_coinpaprika_catalog_coin(
     let reference_coin_per_day = proxy_usd_day / synthetic_price_usd.max(f64::EPSILON);
     let daily_emission = reference_coin_per_day * network_hashrate_hs;
     let block_reward = daily_emission / blocks_per_day;
-    let display_symbol = unique_catalog_symbol(&coin.symbol, coin.rank as u32, seen_display_symbols);
+    let display_symbol =
+        unique_catalog_symbol(&coin.symbol, coin.rank as u32, seen_display_symbols);
 
     Some(MiningCoin {
         id: synthetic_coin_id(&coin.id),
@@ -1334,7 +2196,11 @@ fn infer_coinpaprika_catalog_coin(
     })
 }
 
-fn unique_catalog_symbol(symbol: &str, rank: u32, seen_display_symbols: &mut HashSet<String>) -> String {
+fn unique_catalog_symbol(
+    symbol: &str,
+    rank: u32,
+    seen_display_symbols: &mut HashSet<String>,
+) -> String {
     let base = symbol.trim().to_uppercase();
     if seen_display_symbols.insert(base.clone()) {
         return base;
@@ -1365,7 +2231,8 @@ fn extract_miningpoolstats_timestamp(page: &str) -> Option<u64> {
 fn miningpoolstats_timestamp_regex() -> &'static Regex {
     static REGEX: OnceLock<Regex> = OnceLock::new();
     REGEX.get_or_init(|| {
-        Regex::new(r"coins_data\.js\?t=(\d+)").expect("MiningPoolStats timestamp regex should compile")
+        Regex::new(r"coins_data\.js\?t=(\d+)")
+            .expect("MiningPoolStats timestamp regex should compile")
     })
 }
 
@@ -1546,7 +2413,8 @@ impl MiningRow {
 
         if self.coin.lagging {
             reasons.push(
-                "Upstream marked the coin feed as lagging, so treat this row as directional.".to_string(),
+                "Upstream marked the coin feed as lagging, so treat this row as directional."
+                    .to_string(),
             );
         }
 
@@ -1641,19 +2509,16 @@ pub fn build_rankings_for_rigs(
                     - service_cost_usd_day;
                 let blocks_day = share_of_network * coin.blocks_per_day * efficiency_multiplier;
                 let blocks_month = blocks_day * 30.0;
-                let (
-                    variance_zero_block_pct,
-                    variance_p50_usd_month,
-                    variance_p90_usd_month,
-                ) = payout_variance(
-                    method,
-                    coin,
-                    blocks_month,
-                    net_usd_day,
-                    gross_usd_day,
-                    power_estimate.monthly_cost_usd,
-                    fee_cost_usd_day * 30.0,
-                );
+                let (variance_zero_block_pct, variance_p50_usd_month, variance_p90_usd_month) =
+                    payout_variance(
+                        method,
+                        coin,
+                        blocks_month,
+                        net_usd_day,
+                        gross_usd_day,
+                        power_estimate.monthly_cost_usd,
+                        fee_cost_usd_day * 30.0,
+                    );
 
                 draft_rows.push(MiningRow {
                     coin: coin.clone(),
@@ -1714,9 +2579,7 @@ pub fn sort_rankings(rows: &mut [MiningRow], column: SortColumn, ascending: bool
             SortColumn::GrossUsd => cmp_f64(left.gross_usd_day, right.gross_usd_day),
             SortColumn::BlocksPerMonth => cmp_f64(left.blocks_month, right.blocks_month),
             SortColumn::Trend => cmp_f64(left.trend_delta_pct, right.trend_delta_pct),
-            SortColumn::MarketCap => {
-                cmp_f64(liquidity_usd(&left.coin), liquidity_usd(&right.coin))
-            }
+            SortColumn::MarketCap => cmp_f64(liquidity_usd(&left.coin), liquidity_usd(&right.coin)),
         };
 
         if ascending {
@@ -1753,7 +2616,11 @@ fn score_rows(rows: &mut [MiningRow]) {
                     + row.stability_score * 0.12
                     + row.efficiency_score * 0.16
                     + row.variance_score * 0.12
-                    + if row.coin.inferred_catalog { -14.0 } else { 0.0 }
+                    + if row.coin.inferred_catalog {
+                        -14.0
+                    } else {
+                        0.0
+                    }
                     + row.method.score_bias,
                 0.0,
                 100.0,
@@ -2009,8 +2876,7 @@ fn trend_score(
     lagging: bool,
 ) -> f64 {
     let volatility_penalty = (1.0 + volatility.max(0.0)).ln() * 10.0;
-    let raw = 58.0
-        + price_trend_pct * 3.3
+    let raw = 58.0 + price_trend_pct * 3.3
         - difficulty_trend_pct * 2.4
         - volatility_penalty
         - if lagging { 8.0 } else { 0.0 };
@@ -2023,7 +2889,8 @@ fn stability_score(row: &MiningRow) -> f64 {
     }
 
     let volatility_penalty = (1.0 + row.coin.volatility.max(0.0)).ln() * 8.0;
-    let pool_quality = row.method.uptime_pct - row.method.stale_rate_pct * 3.0 - row.reject_rate_pct * 2.0;
+    let pool_quality =
+        row.method.uptime_pct - row.method.stale_rate_pct * 3.0 - row.reject_rate_pct * 2.0;
 
     match row.method.payout_mode {
         PayoutMode::SoloPool | PayoutMode::SoloNode => {
@@ -2049,7 +2916,9 @@ fn variance_score(row: &MiningRow) -> f64 {
         PayoutMode::Marketplace => 88.0,
         PayoutMode::Prop => 70.0,
         PayoutMode::Pplns => 78.0,
-        PayoutMode::SoloPool | PayoutMode::SoloNode => clamp(100.0 - row.variance_zero_block_pct, 0.0, 100.0),
+        PayoutMode::SoloPool | PayoutMode::SoloNode => {
+            clamp(100.0 - row.variance_zero_block_pct, 0.0, 100.0)
+        }
     }
 }
 
@@ -2363,9 +3232,9 @@ fn history_freshness_minutes(timestamp_ms: u64) -> f64 {
 }
 
 fn synthetic_coin_id(symbol: &str) -> u64 {
-    symbol
-        .bytes()
-        .fold(7_000_000_000u64, |acc, byte| acc.wrapping_mul(131).wrapping_add(byte as u64))
+    symbol.bytes().fold(7_000_000_000u64, |acc, byte| {
+        acc.wrapping_mul(131).wrapping_add(byte as u64)
+    })
 }
 
 fn cpu_algorithm_supported(algorithm: &str) -> bool {
@@ -2457,7 +3326,11 @@ fn parse_plain_number(value: &str) -> f64 {
 }
 
 fn parse_percent(value: &str) -> f64 {
-    value.trim().trim_end_matches('%').parse::<f64>().unwrap_or(0.0)
+    value
+        .trim()
+        .trim_end_matches('%')
+        .parse::<f64>()
+        .unwrap_or(0.0)
 }
 
 fn parse_hashrate_value(value: &str) -> f64 {

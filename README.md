@@ -1,25 +1,67 @@
-# minefit
+<div align="center">
+  <a href="https://github.com/Barkeydog/minefit">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="assets/github/logo-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="assets/github/logo-light.svg">
+      <img alt="minefit logo" src="assets/github/logo-dark.svg" width="78%">
+    </picture>
+  </a>
+</div>
 
-[![CI](https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg)](https://github.com/Barkeydog/minefit/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-0f172a.svg)](./LICENSE)
-[![Rust](https://img.shields.io/badge/rust-1.85%2B-f97316.svg)](https://www.rust-lang.org/)
+<div align="center">
+  <h3>Terminal-first crypto mining comparison for the hardware you actually have.</h3>
+</div>
 
-`minefit` is a terminal-first mining comparison tool for evaluating live coin opportunities against the hardware that is actually on the current machine.
+<div align="center">
+  <a href="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml"><img src="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f172a.svg" alt="MIT License"></a>
+  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85%2B-f97316.svg" alt="Rust"></a>
+  <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
+</div>
 
-It combines local CPU/GPU detection, live mining feeds, electricity-rate estimation, and method-level profitability modeling into a single TUI, CLI, and JSON workflow.
+<br>
 
-## Highlights
+`minefit` is a mining-focused fork of `llmfit` that turns a fast terminal UI into a live mining decision surface. It detects the local CPU and GPU, estimates electricity from the current location, pulls live coin and market data, and ranks coins and methods against real power drag instead of fantasy hashrates.
 
-- Local-first comparison scope using the detected CPU and GPU on the current system.
-- Live mining coverage from WhatToMine, Hashrate.no, MiningPoolStats, and Coinbase spot pricing.
-- Discovery catalog fallback that keeps thousands of assets rankable even when a market feed is rate-limited.
-- Utility-aware electricity modeling with California tariff support and U.S. state fallback.
-- GPU, CPU, and ASIC benchmark profiles with hashrate, power, reject-rate, and tuning assumptions.
-- 40+ modeled techniques spanning pool, solo, hosted, opportunistic, and efficiency-focused strategies.
-- Eligibility checks for algorithm support, VRAM pressure, backend fit, and benchmark coverage.
-- Solo variance modeling with zero-block odds and p50/p90 monthly outcomes.
-- Persistent state for filters, sorting, power context, and last-viewed layout.
-- Cache-backed startup snapshots for faster boot and graceful degradation when feeds fail.
+The goal is operational usefulness. `minefit` is built to answer a narrower question than a generic portfolio tracker: *what can this machine mine, what does power do to the economics, and what method looks best right now?*
+
+> [!NOTE]
+> The current default scope is the local system only. `minefit` detects the CPU and GPU on the current machine and ranks mining rows against that hardware automatically.
+
+---
+
+## Overview
+
+<img src="assets/github/tui-overview.svg" alt="minefit TUI overview" width="100%">
+
+## Why minefit
+
+- Local-first by default. The app models the CPU and GPU on the current machine instead of asking the user to assemble a fake rig.
+- Power-aware ranking. Electricity is part of the default math, including utility-aware California TOU modeling and U.S. state fallback.
+- Live mining data. Rankings are fed by WhatToMine, Hashrate.no, MiningPoolStats, Coinbase spot, and discovery catalog enrichment.
+- Multi-surface workflow. The same ranking engine is available as a full TUI, a classic terminal table, and a JSON output path.
+- Realism over hype. Methods include fees, stale/reject drag, uptime assumptions, service costs, eligibility checks, and solo variance.
+
+## Product Surface
+
+| Surface | What it is for |
+| --- | --- |
+| `minefit` | Full-screen TUI for exploring opportunities, sorting rows, and drilling into why a row ranks where it does |
+| `minefit --cli -n 12` | Fast table output for shell use, SSH sessions, and quick spot checks |
+| `minefit --json -n 25` | Structured output for scripts, automation, reporting, and downstream analysis |
+
+<img src="assets/github/cli-json.svg" alt="minefit CLI and JSON outputs" width="100%">
+
+## What It Models
+
+- Local CPU and GPU detection, including backend hints and memory context.
+- Utility-aware electricity estimation from the current location, with explicit manual overrides.
+- Tier-one mining rows backed by live telemetry and benchmarked algorithm support.
+- Discovery coverage for the long tail of assets, so catalog assets do not vanish when feed quality drops.
+- GPU, CPU, and ASIC-oriented techniques across pool, solo, hosted, and efficiency-focused strategies.
+- Coin eligibility checks for backend fit, VRAM pressure, benchmark coverage, and algorithm support.
+- Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
+- Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
 ## Quick Start
 
@@ -43,26 +85,6 @@ npm install -g minefit
 minefit --cli -n 12
 ```
 
-## Modes
-
-Interactive TUI:
-
-```powershell
-minefit
-```
-
-Classic CLI table:
-
-```powershell
-minefit --cli -n 12
-```
-
-Structured JSON:
-
-```powershell
-minefit --json -n 25
-```
-
 Useful overrides:
 
 ```powershell
@@ -72,40 +94,42 @@ minefit --electricity 0.16
 minefit --memory 24G
 ```
 
-## What The Rankings Mean
+## Ranking Model
 
-`minefit` mixes two classes of rows:
+`minefit` blends market opportunity with operational drag. A row score is influenced by:
 
-- Tier-one mining rows backed by real mining telemetry and validated algorithm benchmarks.
-- Discovery rows backed by inferred `Discovery Proxy` economics so the long tail stays sortable instead of disappearing.
-
-The ranking model applies:
-
-- gross revenue
-- power cost
-- fees and stale-share drag
-- service drag for hosted strategies
-- liquidity penalties
+- gross daily revenue
+- electricity cost
+- pool fees and stale-share drag
+- runtime and uptime assumptions
+- service cost for hosted strategies
+- liquidity and confidence penalties
 - trend and volatility adjustments
-- fit and benchmark confidence
+- fit between the coin, method, and available hardware
 
-The result is meant to be operationally useful, not just theoretically profitable.
+This means a row can appear with a negative net return if it is technically possible but economically weak. That is intentional. For example, BTC can show up on CPU or GPU through software SHA256 paths even though those rows are usually not viable in practice.
 
-## Data Model Notes
+## Data Sources
 
-- BTC can appear on CPU and GPU through software SHA256 paths, but those rows are usually economically negative.
-- Discovery rows are intentionally penalized relative to validated mining rows.
-- Electricity defaults to an estimated local context from your detected location and can be overridden explicitly.
-- Snapshot cache and state live under `~/.config/minefit/`.
+`minefit` currently draws on a mix of live mining, benchmark, and market sources:
+
+- [WhatToMine](https://whattomine.com/coins.json)
+- [Hashrate.no](https://www.hashrate.no/)
+- [MiningPoolStats](https://miningpoolstats.stream/)
+- [Coinbase spot prices](https://www.coinbase.com/)
+- [CoinPaprika discovery catalog](https://docs.coinpaprika.com/api-reference/coins/list-coins)
+
+When a source is unavailable or rate-limited, cached snapshots are used so startup stays fast and the app degrades cleanly instead of failing hard.
 
 ## Repository Layout
 
 ```text
-llmfit-core/      Core mining, power, hardware, and ranking logic
+llmfit-core/      Core mining, power, hardware, cache, and ranking logic
 llmfit-tui/       Terminal UI, CLI, persistence, and app shell
 llmfit-desktop/   Experimental desktop shell
 bin/              npm wrapper entrypoint
-.github/          CI, release automation, templates
+assets/github/    README logos and screenshot assets
+.github/          CI, release automation, and contribution templates
 ```
 
 ## Development
@@ -140,6 +164,6 @@ cargo clippy --all-targets --all-features
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [SECURITY.md](./SECURITY.md)
 
-## Project Status
+## Status
 
 `minefit` is an actively maintained mining-focused fork with a stable public TUI, CLI, and JSON interface.

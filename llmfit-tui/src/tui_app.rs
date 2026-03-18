@@ -1,13 +1,12 @@
 use crate::persistence::{PersistedAppState, PersistedSelection, save_persisted_state};
 use crate::theme::Theme;
-use llmfit_core::{
-    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
-    describe_rig_scope,
-    expand_power_context_options,
-};
 use llmfit_core::hardware::SystemSpecs;
 use llmfit_core::mining::{
     FitLevel, METHODS, MiningRow, MiningSnapshot, SortColumn, sort_rankings,
+};
+use llmfit_core::{
+    MiningRigProfile, PowerContext, SnapshotCacheStatus, build_rankings_for_rigs,
+    describe_rig_scope, expand_power_context_options,
 };
 use serde::{Deserialize, Serialize};
 
@@ -94,7 +93,10 @@ impl App {
         persisted_state: Option<&PersistedAppState>,
     ) -> Self {
         let algorithms = snapshot.algorithms();
-        let methods = METHODS.iter().map(|method| method.name.to_string()).collect();
+        let methods = METHODS
+            .iter()
+            .map(|method| method.name.to_string())
+            .collect();
         let power_options = build_power_options(&power);
         let power_index = power_options
             .iter()
@@ -133,7 +135,8 @@ impl App {
         };
 
         app.selected_algorithms = vec![true; app.algorithms.len()];
-        let persisted_selection = persisted_state.and_then(|state| app.apply_persisted_state(state));
+        let persisted_selection =
+            persisted_state.and_then(|state| app.apply_persisted_state(state));
         app.status_message = app.startup_status_message(persisted_state);
         app.rebuild_rows(persisted_selection);
         app
@@ -157,11 +160,17 @@ impl App {
     }
 
     pub fn visible_algorithm_count(&self) -> usize {
-        self.selected_algorithms.iter().filter(|selected| **selected).count()
+        self.selected_algorithms
+            .iter()
+            .filter(|selected| **selected)
+            .count()
     }
 
     pub fn visible_method_count(&self) -> usize {
-        self.selected_methods.iter().filter(|selected| **selected).count()
+        self.selected_methods
+            .iter()
+            .filter(|selected| **selected)
+            .count()
     }
 
     pub fn refresh_data(&mut self) {
@@ -171,7 +180,13 @@ impl App {
             .algorithms
             .iter()
             .zip(self.selected_algorithms.iter())
-            .filter_map(|(algorithm, selected)| if *selected { Some(algorithm.clone()) } else { None })
+            .filter_map(|(algorithm, selected)| {
+                if *selected {
+                    Some(algorithm.clone())
+                } else {
+                    None
+                }
+            })
             .collect::<Vec<_>>();
         match MiningSnapshot::refresh_with_cache() {
             Ok(load) => {
@@ -221,7 +236,8 @@ impl App {
     }
 
     pub fn page_down(&mut self) {
-        self.selected_row = (self.selected_row + 10).min(self.filtered_rows.len().saturating_sub(1));
+        self.selected_row =
+            (self.selected_row + 10).min(self.filtered_rows.len().saturating_sub(1));
     }
 
     pub fn home(&mut self) {
@@ -385,7 +401,8 @@ impl App {
     }
 
     fn rebuild_rows(&mut self, selected_key: Option<(String, String, String)>) {
-        self.all_rows = build_rankings_for_rigs(&self.snapshot, &self.power, self.active_rigs(), 1.0);
+        self.all_rows =
+            build_rankings_for_rigs(&self.snapshot, &self.power, self.active_rigs(), 1.0);
         sort_rankings(&mut self.all_rows, self.sort_column, self.sort_ascending);
         self.apply_filters();
 
@@ -508,7 +525,12 @@ impl App {
             self.selected_algorithms = self
                 .algorithms
                 .iter()
-                .map(|algorithm| state.selected_algorithms.iter().any(|saved| saved == algorithm))
+                .map(|algorithm| {
+                    state
+                        .selected_algorithms
+                        .iter()
+                        .any(|saved| saved == algorithm)
+                })
                 .collect();
             if !self.selected_algorithms.iter().any(|selected| *selected) {
                 self.selected_algorithms = vec![true; self.algorithms.len()];
@@ -552,12 +574,24 @@ impl App {
             self.algorithms
                 .iter()
                 .zip(self.selected_algorithms.iter())
-                .filter_map(|(algorithm, selected)| if *selected { Some(algorithm.clone()) } else { None })
+                .filter_map(|(algorithm, selected)| {
+                    if *selected {
+                        Some(algorithm.clone())
+                    } else {
+                        None
+                    }
+                })
                 .collect(),
             METHODS
                 .iter()
                 .zip(self.selected_methods.iter())
-                .filter_map(|(method, selected)| if *selected { Some(method.id.to_string()) } else { None })
+                .filter_map(|(method, selected)| {
+                    if *selected {
+                        Some(method.id.to_string())
+                    } else {
+                        None
+                    }
+                })
                 .collect(),
             self.show_detail,
             PersistedSelection {
