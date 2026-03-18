@@ -4,7 +4,8 @@
 
 ## What It Models
 
-- Live tier-one coin discovery from WhatToMine, Hashrate.no, and MiningPoolStats, with BTC spot from Coinbase. Current public snapshots are now clearing 100+ coins and include BTC again.
+- Live tier-one mining discovery from WhatToMine, Hashrate.no, and MiningPoolStats, with BTC spot from Coinbase. Current public snapshots are now clearing 100+ rankable mining coins and include BTC again.
+- A bulk discovery catalog from CoinPaprika so the app can ingest 10k+ active crypto assets while keeping the mining comparison matrix limited to assets with real mining inputs.
 - Utility-specific residential tariffs for supported California utilities, with EIA state-average fallback.
 - Real rig profiles for selected GPUs, ASICs, and CPUs, including tuned hashrate, watt draw, and reject-rate assumptions.
 - 40+ modeled mining techniques across pool, marketplace, hosted, eco, windowed, and solo strategies.

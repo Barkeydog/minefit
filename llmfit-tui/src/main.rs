@@ -118,8 +118,9 @@ fn run_cli(
     sort_rankings(&mut rows, sort, false);
 
     println!(
-        "minefit | {} live coins | snapshot {} | BTC ${:.2} | power {}",
-        snapshot.coins.len(),
+        "minefit | {} rankable coins | {} catalog assets | snapshot {} | BTC ${:.2} | power {}",
+        snapshot.rankable_coin_count(),
+        snapshot.catalog_asset_count(),
         snapshot_status.badge(),
         snapshot.btc_usd,
         power.badge()
@@ -302,6 +303,8 @@ fn main() {
             "system": specs,
             "snapshot": snapshot,
             "snapshot_status": snapshot_status,
+            "rankable_coin_count": snapshot.rankable_coin_count(),
+            "catalog_asset_count": snapshot.catalog_asset_count(),
             "power": power,
             "rig_scope": describe_rig_scope(&active_rigs),
             "rig_profiles": active_rigs,

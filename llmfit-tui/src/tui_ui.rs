@@ -88,8 +88,13 @@ fn draw_system_bar(frame: &mut Frame, app: &App, area: Rect, tc: &ThemeColors) {
         Span::styled(gpu_info, Style::default().fg(tc.accent_secondary)),
         Span::styled("  |  ", Style::default().fg(tc.muted)),
         Span::styled(
-            format!("Coins: {}", app.snapshot.coins.len()),
+            format!("Rankable: {}", app.snapshot.rankable_coin_count()),
             Style::default().fg(tc.good),
+        ),
+        Span::styled("  |  ", Style::default().fg(tc.muted)),
+        Span::styled(
+            format!("Catalog: {}", app.snapshot.catalog_asset_count()),
+            Style::default().fg(tc.accent),
         ),
         Span::styled("  |  ", Style::default().fg(tc.muted)),
         Span::styled(

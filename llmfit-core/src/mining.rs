@@ -21,9 +21,11 @@ const MININGPOOLSTATS_BROWSER_UA: &str =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36";
 const MININGPOOLSTATS_MIN_MARKET_CAP_USD: f64 = 10_000.0;
 const MININGPOOLSTATS_MIN_VOLUME_USD: f64 = 100.0;
-const SNAPSHOT_CACHE_SCHEMA_VERSION: u32 = 1;
+const SNAPSHOT_CACHE_SCHEMA_VERSION: u32 = 2;
 const SNAPSHOT_CACHE_FRESH_SECS: u64 = 900;
 const SNAPSHOT_ARCHIVE_KEEP_COUNT: usize = 24;
+const COINPAPRIKA_COINS_URL: &str = "https://api.coinpaprika.com/v1/coins";
+const COINPAPRIKA_UA: &str = "minefit/0.7.4";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SortColumn {
@@ -341,11 +343,26 @@ pub struct MiningCoin {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CatalogAsset {
+    pub id: String,
+    pub name: String,
+    pub symbol: String,
+    pub rank: u32,
+    pub asset_type: String,
+    pub is_active: bool,
+    pub source: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MiningSnapshot {
     pub as_of: String,
     pub source: String,
+    #[serde(default)]
+    pub catalog_source: Option<String>,
     pub btc_usd: f64,
     pub coins: Vec<MiningCoin>,
+    #[serde(default)]
+    pub catalog_assets: Vec<CatalogAsset>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -467,6 +484,8 @@ impl MiningSnapshot {
             sources.push("Tier-one mining feeds");
         }
 
+        let catalog_assets = fetch_coinpaprika_catalog().unwrap_or_default();
+
         coins.sort_by(|left, right| {
             right
                 .profitability
@@ -477,8 +496,14 @@ impl MiningSnapshot {
         Ok(Self {
             as_of: iso_timestamp_now(),
             source: format!("{} + Coinbase spot", sources.join(" + ")),
+            catalog_source: if catalog_assets.is_empty() {
+                None
+            } else {
+                Some("CoinPaprika catalog".to_string())
+            },
             btc_usd,
             coins,
+            catalog_assets,
         })
     }
 
@@ -489,6 +514,14 @@ impl MiningSnapshot {
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect()
+    }
+
+    pub fn rankable_coin_count(&self) -> usize {
+        self.coins.len()
+    }
+
+    pub fn catalog_asset_count(&self) -> usize {
+        self.catalog_assets.len()
     }
 
     pub fn load_startup_snapshot() -> Result<SnapshotLoad, String> {
@@ -646,6 +679,37 @@ fn fetch_coinbase_btc_spot() -> Result<f64, String> {
         .amount
         .parse::<f64>()
         .map_err(|err| format!("Unable to parse BTC spot price: {err}"))
+}
+
+fn fetch_coinpaprika_catalog() -> Result<Vec<CatalogAsset>, String> {
+    let response = ureq::get(COINPAPRIKA_COINS_URL)
+        .header("User-Agent", COINPAPRIKA_UA)
+        .config()
+        .timeout_global(Some(Duration::from_secs(12)))
+        .build()
+        .call()
+        .map_err(|err| format!("CoinPaprika /coins request failed: {err}"))?;
+    let rows: Vec<CoinPaprikaCoin> = response
+        .into_body()
+        .read_json()
+        .map_err(|err| format!("CoinPaprika /coins JSON parse failed: {err}"))?;
+
+    let mut catalog = rows
+        .into_iter()
+        .filter(|coin| coin.is_active && coin.rank > 0)
+        .map(|coin| CatalogAsset {
+            id: coin.id,
+            name: coin.name,
+            symbol: coin.symbol,
+            rank: coin.rank as u32,
+            asset_type: coin.asset_type,
+            is_active: coin.is_active,
+            source: "CoinPaprika /coins".to_string(),
+        })
+        .collect::<Vec<_>>();
+
+    catalog.sort_by(|left, right| left.rank.cmp(&right.rank));
+    Ok(catalog)
 }
 
 fn fetch_whattomine_coins(btc_usd: f64, now_secs: f64) -> Result<Vec<MiningCoin>, String> {
@@ -2176,6 +2240,17 @@ struct CoinbaseResponse {
 #[derive(Deserialize)]
 struct CoinbasePrice {
     amount: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoinPaprikaCoin {
+    id: String,
+    name: String,
+    symbol: String,
+    rank: i64,
+    is_active: bool,
+    #[serde(rename = "type")]
+    asset_type: String,
 }
 
 #[cfg(test)]

@@ -10,8 +10,8 @@ pub use electricity::{
 };
 pub use hardware::{GpuBackend, SystemSpecs, parse_memory_size};
 pub use mining::{
-    FitLevel, METHODS, MiningCoin, MiningMethod, MiningRow, MiningSnapshot, MiningStrategy,
-    SnapshotCacheStatus, SnapshotLoad, SnapshotLoadMode, SortColumn, build_rankings,
+    CatalogAsset, FitLevel, METHODS, MiningCoin, MiningMethod, MiningRow, MiningSnapshot,
+    MiningStrategy, SnapshotCacheStatus, SnapshotLoad, SnapshotLoadMode, SortColumn, build_rankings,
     build_rankings_for_rigs, sort_rankings,
 };
 pub use rig_profiles::{

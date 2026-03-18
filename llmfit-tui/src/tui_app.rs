@@ -190,8 +190,9 @@ impl App {
                     self.selected_algorithms = vec![true; self.algorithms.len()];
                 }
                 self.status_message = format!(
-                    "Feed refreshed: {} coins | Snapshot: {} | Power: {}",
-                    self.snapshot.coins.len(),
+                    "Feed refreshed: {} rankable | {} catalog | Snapshot: {} | Power: {}",
+                    self.snapshot.rankable_coin_count(),
+                    self.snapshot.catalog_asset_count(),
                     self.snapshot_badge(),
                     self.power_badge(),
                 );
@@ -470,7 +471,8 @@ impl App {
     fn startup_status_message(&self, persisted_state: Option<&PersistedAppState>) -> String {
         let mut parts = vec![
             format!("Snapshot: {}", self.snapshot_badge()),
-            format!("{} coins", self.snapshot.coins.len()),
+            format!("{} rankable", self.snapshot.rankable_coin_count()),
+            format!("{} catalog", self.snapshot.catalog_asset_count()),
         ];
         if let Some(state) = persisted_state {
             parts.push(if state.hardware_changed(&self.specs) {
