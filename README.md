@@ -32,14 +32,102 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 
 ---
 
-## Quick Start
+## Install Concepts
+
+This branch is a README exploration branch. The four install patterns below are intentionally shown together so you can compare them in GitHub and decide which one should ship on `main`.
+
+### Option A: Minimal Quick Start
 
 ```powershell
 npm install -g minefit
 minefit
 ```
 
-`npm` is the primary install path. On supported platforms, the package resolves to a prebuilt native binary. In source checkouts and unsupported environments, the launcher falls back to Cargo.
+Best for:
+- fast scanning
+- clean CLI-first repos
+- keeping the page feeling technical and direct
+
+### Option B: Primary + Fallback
+
+#### Recommended: npm
+
+```powershell
+npm install -g minefit
+minefit
+```
+
+Installs the public npm package and resolves to a prebuilt native binary on supported platforms.
+
+#### Cargo
+
+```powershell
+cargo install --path .\llmfit-tui --force
+minefit
+```
+
+#### From source
+
+```powershell
+cargo run -p minefit --manifest-path .\Cargo.toml --
+```
+
+Best for:
+- making `npm` clearly primary
+- still supporting contributors and local builds
+- a more professional product-style layout
+
+### Option C: Method Table
+
+| Path | Command | Use when |
+| --- | --- | --- |
+| `npm` | `npm install -g minefit` | Normal install on supported platforms |
+| `cargo` | `cargo install --path .\llmfit-tui --force` | Local Rust development |
+| `source` | `cargo run -p minefit --manifest-path .\Cargo.toml --` | Running directly from the repo |
+
+Then run:
+
+```powershell
+minefit
+```
+
+Best for:
+- compact documentation
+- multiple install paths
+- readers who prefer scanning tables
+
+### Option D: Terminal Card
+
+This is the most styled version and is closest in spirit to the `rdme` screenshot you liked.
+
+```text
+┌──────────────────────────────────────────────┐
+│ Quick Start                                  │
+├──────────────────────────────────────────────┤
+│ $ npm install -g minefit                     │
+│ $ minefit                                    │
+└──────────────────────────────────────────────┘
+```
+
+You can follow it with one short sentence:
+
+> `npm` is the primary install path and resolves to a prebuilt native binary on supported platforms.
+
+Best for:
+- a more branded feel
+- visual separation without heavy HTML
+- a hero-adjacent install treatment
+
+### My Recommendation
+
+If this were shipping today, I would use **Option B**.
+
+It reads like a real product README:
+- `npm` is clearly first
+- the basic install path is still just two commands
+- Cargo and source usage stay visible without cluttering the top of the page
+
+For a more distinctive look, **Option D** is the strongest alternative.
 
 ## Why minefit
 
@@ -68,7 +156,7 @@ minefit
 - Solo variance signals including p50 and p90 monthly outcomes plus zero-block risk.
 - Persistent app state and cached startup snapshots under `~/.config/minefit/`.
 
-## From Source
+## Developer Setup
 
 Run from source:
 
