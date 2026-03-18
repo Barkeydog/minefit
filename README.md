@@ -52,14 +52,6 @@ The goal is operational usefulness. `minefit` is built to answer a narrower ques
 - Multi-surface workflow. The same ranking engine is available as a full TUI, a classic terminal table, and a JSON output path.
 - Realism over hype. Methods include fees, stale/reject drag, uptime assumptions, service costs, eligibility checks, and solo variance.
 
-## Product Surface
-
-| Surface | What it is for |
-| --- | --- |
-| `minefit` | Full-screen TUI for exploring opportunities, sorting rows, and drilling into why a row ranks where it does |
-| `minefit --cli -n 12` | Fast table output for shell use, SSH sessions, and quick spot checks |
-| `minefit --json -n 25` | Structured output for scripts, automation, reporting, and downstream analysis |
-
 ## What It Models
 
 - Local CPU and GPU detection, including backend hints and memory context.
