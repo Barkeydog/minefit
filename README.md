@@ -21,6 +21,19 @@
   <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
 </div>
 
+<div align="center">
+  <h4>Install</h4>
+</div>
+
+```powershell
+npm install -g minefit
+minefit --cli -n 12
+```
+
+<div align="center">
+  <sub><strong>npm</strong> is the primary install path and resolves to a prebuilt native binary on supported platforms.</sub>
+</div>
+
 <br>
 
 `minefit` is a mining-focused fork of `llmfit` that turns a fast terminal UI into a live mining decision surface. It detects the local CPU and GPU, estimates electricity from the current location, pulls live coin and market data, and ranks coins and methods against real power drag instead of fantasy hashrates.
