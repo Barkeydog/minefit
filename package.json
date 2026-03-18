@@ -1,6 +1,6 @@
 {
   "name": "minefit",
-  "version": "0.7.7",
+  "version": "0.7.8",
   "description": "Professional terminal UI for comparing live mineable coins, power-aware mining methods, and local rig economics.",
   "license": "MIT",
   "homepage": "https://github.com/Barkeydog/minefit#readme",
@@ -25,10 +25,10 @@
     "minefit": "bin/minefit.js"
   },
   "optionalDependencies": {
-    "@barkey/minefit-darwin-arm64": "0.7.7",
-    "@barkey/minefit-darwin-x64": "0.7.7",
-    "@barkey/minefit-linux-x64-gnu": "0.7.7",
-    "@barkey/minefit-win32-x64-msvc": "0.7.7"
+    "@barkey/minefit-darwin-arm64": "0.7.8",
+    "@barkey/minefit-darwin-x64": "0.7.8",
+    "@barkey/minefit-linux-x64-gnu": "0.7.8",
+    "@barkey/minefit-win32-x64-msvc": "0.7.8"
   },
   "files": [
     "bin",

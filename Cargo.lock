@@ -2156,7 +2156,7 @@ checksum = "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
 
 [[package]]
 name = "llmfit-core"
-version = "0.7.7"
+version = "0.7.8"
 dependencies = [
  "regex",
  "serde",
@@ -2168,7 +2168,7 @@ dependencies = [
 
 [[package]]
 name = "llmfit-desktop"
-version = "0.7.7"
+version = "0.7.8"
 dependencies = [
  "llmfit-core",
  "serde",
@@ -2283,7 +2283,7 @@ checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
 name = "minefit"
-version = "0.7.7"
+version = "0.7.8"
 dependencies = [
  "axum",
  "clap",
