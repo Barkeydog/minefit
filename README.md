@@ -21,15 +21,46 @@
   <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
 </div>
 
+<br>
+
+## Badge Header Variants
+
+This branch is also being used to test header badge density. These are three rendered options for the README header.
+
+### Minimal polished
+
 <div align="center">
+  <a href="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml"><img src="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/v/minefit?color=cb3837" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/dm/minefit?color=0f766e" alt="npm downloads per month"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f172a.svg" alt="MIT License"></a>
+</div>
+
+### Dense startup-style
+
+<div align="center">
+  <a href="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml"><img src="https://github.com/Barkeydog/minefit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/v/minefit?color=cb3837" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/dm/minefit?color=0f766e" alt="npm downloads per month"></a>
   <a href="https://github.com/Barkeydog/minefit/releases"><img src="https://img.shields.io/github/v/release/Barkeydog/minefit?display_name=tag&color=2563eb" alt="GitHub release"></a>
   <a href="https://github.com/Barkeydog/minefit/pkgs/container/minefit"><img src="https://img.shields.io/badge/ghcr-minefit-111827" alt="GHCR image"></a>
   <a href="https://github.com/Barkeydog/minefit/releases"><img src="https://img.shields.io/badge/platforms-win%20%7C%20macOS%20%7C%20linux-0f766e" alt="Supported platforms"></a>
   <a href="https://github.com/Barkeydog/minefit"><img src="https://img.shields.io/badge/interfaces-TUI%20%7C%20CLI%20%7C%20JSON-7c3aed" alt="Interfaces"></a>
   <a href="https://github.com/Barkeydog/minefit/blob/main/README.md"><img src="https://img.shields.io/badge/install-npm%20preferred-c2410c" alt="Install method"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-0f172a.svg" alt="MIT License"></a>
+  <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85%2B-f97316.svg" alt="Rust"></a>
+  <a href="https://github.com/Barkeydog/minefit/stargazers"><img src="https://img.shields.io/github/stars/Barkeydog/minefit?style=flat" alt="GitHub stars"></a>
 </div>
 
-<br>
+### Product badges only
+
+<div align="center">
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/v/minefit?color=cb3837" alt="npm version"></a>
+  <a href="https://www.npmjs.com/package/minefit"><img src="https://img.shields.io/npm/dm/minefit?color=0f766e" alt="npm downloads per month"></a>
+  <a href="https://github.com/Barkeydog/minefit/releases"><img src="https://img.shields.io/badge/platforms-win%20%7C%20macOS%20%7C%20linux-0f766e" alt="Supported platforms"></a>
+  <a href="https://github.com/Barkeydog/minefit"><img src="https://img.shields.io/badge/interfaces-TUI%20%7C%20CLI%20%7C%20JSON-7c3aed" alt="Interfaces"></a>
+  <a href="https://github.com/Barkeydog/minefit/blob/main/README.md"><img src="https://img.shields.io/badge/install-npm%20preferred-c2410c" alt="Install method"></a>
+</div>
 
 `minefit` is a mining-focused fork of `llmfit` that turns a fast terminal UI into a live mining decision surface. It detects the local CPU and GPU, estimates electricity from the current location, pulls live coin and market data, and ranks coins and methods against real power drag instead of fantasy hashrates.
 
