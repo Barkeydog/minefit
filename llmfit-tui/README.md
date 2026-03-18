@@ -2,7 +2,7 @@
 
 Mining coin and method comparison in the terminal, built from the `llmfit` TUI codebase.
 
-The live snapshot now combines WhatToMine, Hashrate.no, and MiningPoolStats so the default feed covers 100+ tier-one rankable mining coins on current public data, including BTC. It also carries a CoinPaprika-backed discovery catalog of 10k+ active assets. Ranking defaults to your detected local CPU and GPU only.
+The live snapshot now combines WhatToMine, Hashrate.no, and MiningPoolStats so the default feed covers 100+ tier-one rankable mining coins on current public data, including BTC. It also carries a discovery catalog that prefers CoinPaprika and falls back to CoinGecko, turning the long tail into inferred `Discovery Proxy` rows so 10k+ assets remain rankable. Ranking defaults to your detected local CPU and GPU only.
 
 This build also adds:
 - 40+ modeled techniques across pool, marketplace, hosted, eco, windowed, and solo paths.

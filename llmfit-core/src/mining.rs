@@ -25,7 +25,9 @@ const SNAPSHOT_CACHE_SCHEMA_VERSION: u32 = 2;
 const SNAPSHOT_CACHE_FRESH_SECS: u64 = 900;
 const SNAPSHOT_ARCHIVE_KEEP_COUNT: usize = 24;
 const COINPAPRIKA_COINS_URL: &str = "https://api.coinpaprika.com/v1/coins";
+const COINPAPRIKA_TICKERS_URL: &str = "https://api.coinpaprika.com/v1/tickers";
 const COINPAPRIKA_UA: &str = "minefit/0.7.4";
+const COINGECKO_COINS_LIST_URL: &str = "https://api.coingecko.com/api/v3/coins/list";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SortColumn {
@@ -217,6 +219,7 @@ const SUPPORTED_CPU: &[&str] = &[
 const SUPPORTED_SHA256: &[&str] = &["SHA256"];
 const SUPPORTED_SCRYPT: &[&str] = &["Scrypt"];
 const SUPPORTED_KHEAVY: &[&str] = &["KHeavyHash"];
+const SUPPORTED_DISCOVERY: &[&str] = &["DiscoveryProxy"];
 const SUPPORTED_SOLO: &[&str] = &[];
 const RIGS_GPU_ONLY: &[RigKind] = &[RigKind::Gpu];
 const RIGS_CPU_ONLY: &[RigKind] = &[RigKind::Cpu];
@@ -311,6 +314,7 @@ pub static METHODS: LazyLock<Vec<MiningMethod>> = LazyLock::new(|| {
         technique("kheavy-pool-fpps", "KHeavy Pool FPPS", MiningStrategy::Pool, PayoutMode::Fpps, "Lower-variance KHeavyHash payout route that favors steadier realized cashflow.", 0.015, 0.35, 99.7, 100.0, 1.00, 1.00, 0.00, 0.0, 2.0, "Modeled from KHeavyHash FPPS-style payouts", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
         technique("kheavy-hosted-contract", "KHeavy Hosted Contract", MiningStrategy::Hosted, PayoutMode::Fpps, "Hosted KHeavyHash capacity with managed uptime and an external facility fee.", 0.000, 0.30, 99.3, 100.0, 0.98, 1.04, 0.00, 1.60, -0.6, "Modeled from hosted KHeavyHash pricing", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
         technique("kheavy-solo-pool", "KHeavy Solo Pool", MiningStrategy::Solo, PayoutMode::SoloPool, "Solo-pool KHeavyHash route where payout variance dominates expected value.", 0.010, 0.40, 99.5, 100.0, 1.00, 1.00, 0.05, 0.0, -3.0, "Modeled from solo-pool KHeavyHash operation", SUPPORTED_KHEAVY, RIGS_ASIC_ONLY),
+        technique("discovery-proxy", "Discovery Proxy", MiningStrategy::Pool, PayoutMode::Marketplace, "Inferred long-tail ranking row built from market rank, liquidity, and trend when validated mining telemetry is missing.", 0.020, 0.90, 98.5, 100.0, 1.00, 1.00, 0.10, 0.0, -18.0, "CoinPaprika paged tickers plus minefit inference", SUPPORTED_DISCOVERY, RIGS_CPU_GPU_ASIC),
         technique("solo-node", "Solo Node", MiningStrategy::Solo, PayoutMode::SoloNode, "Generic direct-node fallback for any validated benchmark and algorithm pair.", 0.000, 1.10, 98.5, 100.0, 1.00, 1.00, 0.15, 0.03, -7.0, "Inference from direct-node mining assumptions", SUPPORTED_SOLO, RIGS_ALL),
     ]
 });
@@ -321,6 +325,8 @@ pub struct MiningCoin {
     pub name: String,
     pub symbol: String,
     pub algorithm: String,
+    #[serde(default)]
+    pub inferred_catalog: bool,
     pub block_time_sec: f64,
     pub block_reward: f64,
     pub blocks_per_day: f64,
@@ -476,6 +482,18 @@ impl MiningSnapshot {
             sources.push("MiningPoolStats");
         }
 
+        let (catalog_source, catalog_assets, inferred_catalog_coins) =
+            fetch_discovery_catalog(btc_usd, &seen_symbols)
+                .unwrap_or_else(|_| (String::new(), Vec::new(), Vec::new()));
+        if !inferred_catalog_coins.is_empty() {
+            sources.push("Discovery catalog inferred");
+            for coin in inferred_catalog_coins {
+                if seen_symbols.insert(coin.symbol.clone()) {
+                    coins.push(coin);
+                }
+            }
+        }
+
         if coins.is_empty() {
             return Err("No live mining coin feeds returned usable tier-one entries".to_string());
         }
@@ -483,8 +501,6 @@ impl MiningSnapshot {
         if sources.is_empty() {
             sources.push("Tier-one mining feeds");
         }
-
-        let catalog_assets = fetch_coinpaprika_catalog().unwrap_or_default();
 
         coins.sort_by(|left, right| {
             right
@@ -499,7 +515,7 @@ impl MiningSnapshot {
             catalog_source: if catalog_assets.is_empty() {
                 None
             } else {
-                Some("CoinPaprika catalog".to_string())
+                Some(catalog_source)
             },
             btc_usd,
             coins,
@@ -681,35 +697,140 @@ fn fetch_coinbase_btc_spot() -> Result<f64, String> {
         .map_err(|err| format!("Unable to parse BTC spot price: {err}"))
 }
 
-fn fetch_coinpaprika_catalog() -> Result<Vec<CatalogAsset>, String> {
+fn fetch_discovery_catalog(
+    btc_usd: f64,
+    existing_symbols: &HashSet<String>,
+) -> Result<(String, Vec<CatalogAsset>, Vec<MiningCoin>), String> {
+    fetch_coinpaprika_market_catalog(btc_usd, existing_symbols)
+        .or_else(|_| fetch_coingecko_catalog(btc_usd, existing_symbols))
+}
+
+fn fetch_coinpaprika_market_catalog(
+    btc_usd: f64,
+    existing_symbols: &HashSet<String>,
+) -> Result<(String, Vec<CatalogAsset>, Vec<MiningCoin>), String> {
     let response = ureq::get(COINPAPRIKA_COINS_URL)
         .header("User-Agent", COINPAPRIKA_UA)
         .config()
-        .timeout_global(Some(Duration::from_secs(12)))
+        .timeout_global(Some(Duration::from_secs(8)))
         .build()
         .call()
-        .map_err(|err| format!("CoinPaprika /coins request failed: {err}"))?;
-    let rows: Vec<CoinPaprikaCoin> = response
+        .map_err(|err| format!("CoinPaprika coins request failed: {err}"))?;
+    let mut rows: Vec<CoinPaprikaCoin> = response
         .into_body()
         .read_json()
-        .map_err(|err| format!("CoinPaprika /coins JSON parse failed: {err}"))?;
+        .map_err(|err| format!("CoinPaprika coins JSON parse failed: {err}"))?;
+    rows.retain(|row| row.is_active && row.rank > 0);
+    rows.sort_by_key(|row| row.rank);
 
-    let mut catalog = rows
-        .into_iter()
-        .filter(|coin| coin.is_active && coin.rank > 0)
-        .map(|coin| CatalogAsset {
-            id: coin.id,
-            name: coin.name,
-            symbol: coin.symbol,
-            rank: coin.rank as u32,
-            asset_type: coin.asset_type,
-            is_active: coin.is_active,
+    let market_overlays = fetch_coinpaprika_market_tickers().unwrap_or_default();
+    let mut catalog = Vec::new();
+    let mut inferred = Vec::new();
+    let mut seen_display_symbols = existing_symbols.clone();
+
+    for row in rows {
+        catalog.push(CatalogAsset {
+            id: row.id.clone(),
+            name: row.name.clone(),
+            symbol: row.symbol.clone(),
+            rank: row.rank as u32,
+            asset_type: row.asset_type.clone(),
+            is_active: row.is_active,
             source: "CoinPaprika /coins".to_string(),
-        })
-        .collect::<Vec<_>>();
+        });
+
+        let inferred_coin = market_overlays
+            .get(&row.id)
+            .and_then(|ticker| infer_coinpaprika_mining_coin(ticker, btc_usd, &mut seen_display_symbols))
+            .or_else(|| infer_coinpaprika_catalog_coin(&row, btc_usd, &mut seen_display_symbols));
+
+        if let Some(coin) = inferred_coin {
+            inferred.push(coin);
+        }
+    }
 
     catalog.sort_by(|left, right| left.rank.cmp(&right.rank));
-    Ok(catalog)
+    let source = if market_overlays.is_empty() {
+        "CoinPaprika /coins discovery catalog".to_string()
+    } else {
+        "CoinPaprika /coins + /tickers discovery catalog".to_string()
+    };
+    Ok((source, catalog, inferred))
+}
+
+fn fetch_coingecko_catalog(
+    btc_usd: f64,
+    existing_symbols: &HashSet<String>,
+) -> Result<(String, Vec<CatalogAsset>, Vec<MiningCoin>), String> {
+    let response = ureq::get(COINGECKO_COINS_LIST_URL)
+        .header("User-Agent", COINPAPRIKA_UA)
+        .config()
+        .timeout_global(Some(Duration::from_secs(8)))
+        .build()
+        .call()
+        .map_err(|err| format!("CoinGecko coins list request failed: {err}"))?;
+    let rows: Vec<CoinGeckoCoin> = response
+        .into_body()
+        .read_json()
+        .map_err(|err| format!("CoinGecko coins list JSON parse failed: {err}"))?;
+
+    let mut catalog = Vec::with_capacity(rows.len());
+    let mut inferred = Vec::with_capacity(rows.len());
+    let mut seen_display_symbols = existing_symbols.clone();
+
+    for (index, row) in rows.into_iter().enumerate() {
+        let rank = (index + 1) as u32;
+        let coin = CoinPaprikaCoin {
+            id: row.id.clone(),
+            name: row.name.clone(),
+            symbol: row.symbol,
+            rank: rank as i64,
+            asset_type: "asset".to_string(),
+            is_active: true,
+        };
+
+        catalog.push(CatalogAsset {
+            id: coin.id.clone(),
+            name: coin.name.clone(),
+            symbol: coin.symbol.clone(),
+            rank,
+            asset_type: coin.asset_type.clone(),
+            is_active: true,
+            source: "CoinGecko /coins/list".to_string(),
+        });
+
+        if let Some(inferred_coin) =
+            infer_coinpaprika_catalog_coin(&coin, btc_usd, &mut seen_display_symbols)
+        {
+            inferred.push(inferred_coin);
+        }
+    }
+
+    Ok((
+        "CoinGecko /coins/list discovery catalog".to_string(),
+        catalog,
+        inferred,
+    ))
+}
+
+fn fetch_coinpaprika_market_tickers() -> Result<HashMap<String, CoinPaprikaTicker>, String> {
+    let response = ureq::get(&format!("{COINPAPRIKA_TICKERS_URL}?quotes=USD"))
+        .header("User-Agent", COINPAPRIKA_UA)
+        .config()
+        .timeout_global(Some(Duration::from_secs(8)))
+        .build()
+        .call()
+        .map_err(|err| format!("CoinPaprika tickers request failed: {err}"))?;
+    let rows: Vec<CoinPaprikaTicker> = response
+        .into_body()
+        .read_json()
+        .map_err(|err| format!("CoinPaprika tickers JSON parse failed: {err}"))?;
+
+    Ok(rows
+        .into_iter()
+        .filter(|row| row.rank > 0)
+        .map(|row| (row.id.clone(), row))
+        .collect())
 }
 
 fn fetch_whattomine_coins(btc_usd: f64, now_secs: f64) -> Result<Vec<MiningCoin>, String> {
@@ -783,6 +904,7 @@ fn fetch_whattomine_coins(btc_usd: f64, now_secs: f64) -> Result<Vec<MiningCoin>
             name,
             symbol: symbol.to_uppercase(),
             algorithm,
+            inferred_catalog: false,
             block_time_sec,
             block_reward,
             blocks_per_day,
@@ -993,6 +1115,7 @@ fn build_miningpoolstats_coin(
         name: candidate.name.clone(),
         symbol: candidate.symbol.clone(),
         algorithm: candidate.algorithm.clone(),
+        inferred_catalog: false,
         block_time_sec: candidate.block_time_sec,
         block_reward: candidate.block_reward,
         blocks_per_day,
@@ -1094,6 +1217,142 @@ fn fetch_miningpoolstats_json(url: &str) -> Result<Value, String> {
         .into_body()
         .read_json()
         .map_err(|err| format!("{url} JSON parse failed: {err}"))
+}
+
+fn infer_coinpaprika_mining_coin(
+    ticker: &CoinPaprikaTicker,
+    btc_usd: f64,
+    seen_display_symbols: &mut HashSet<String>,
+) -> Option<MiningCoin> {
+    let usd = ticker.quotes.usd.as_ref()?;
+    if usd.price <= 0.0 || ticker.rank <= 0 {
+        return None;
+    }
+
+    let rank_factor = clamp(1.0 - ((ticker.rank as f64).log10() / 5.0), 0.0, 1.0);
+    let market_factor = scaled_log_score(usd.market_cap, 4.0, 12.0);
+    let volume_factor = scaled_log_score(usd.volume_24h, 3.0, 11.0);
+    let trend_factor = clamp((usd.percent_change_24h + 20.0) / 60.0, 0.0, 1.0);
+    let proxy_usd_day = clamp(
+        0.015 + (rank_factor * 0.24) + (market_factor * 0.32) + (volume_factor * 0.28)
+            + (trend_factor * 0.10),
+        0.01,
+        0.95,
+    );
+
+    let network_hashrate_hs = 1_000.0;
+    let reference_coin_per_day = proxy_usd_day / usd.price.max(f64::EPSILON);
+    let daily_emission = reference_coin_per_day * network_hashrate_hs;
+    let block_time_sec = 60.0;
+    let blocks_per_day = 86_400.0 / block_time_sec;
+    let block_reward = daily_emission / blocks_per_day;
+    let display_symbol = unique_catalog_symbol(&ticker.symbol, ticker.rank as u32, seen_display_symbols);
+
+    Some(MiningCoin {
+        id: synthetic_coin_id(&ticker.id),
+        name: ticker.name.clone(),
+        symbol: display_symbol,
+        algorithm: "DiscoveryProxy".to_string(),
+        inferred_catalog: true,
+        block_time_sec,
+        block_reward,
+        blocks_per_day,
+        daily_emission,
+        network_hashrate_hs,
+        exchange_rate_btc: usd.price / btc_usd.max(f64::EPSILON),
+        price_usd: usd.price,
+        market_cap_usd: usd.market_cap,
+        volume_24h_usd: usd.volume_24h,
+        profitability: (proxy_usd_day / btc_usd.max(f64::EPSILON)) * 1_000_000_000_000.0,
+        profitability24: (proxy_usd_day / btc_usd.max(f64::EPSILON)) * 1_000_000_000_000.0,
+        reference_coin_per_day,
+        reference_btc_revenue: proxy_usd_day / btc_usd.max(f64::EPSILON),
+        reference_hashrate_hs: 1.0,
+        price_trend_pct: usd.percent_change_24h,
+        difficulty_trend_pct: 0.0,
+        volatility: ((usd.percent_change_24h.abs() * 0.55) + (usd.percent_change_7d.abs() * 0.30)
+            + (usd.percent_change_30d.abs() * 0.15))
+            / 10.0,
+        lagging: false,
+        freshness_minutes: 0.0,
+    })
+}
+
+fn infer_coinpaprika_catalog_coin(
+    coin: &CoinPaprikaCoin,
+    btc_usd: f64,
+    seen_display_symbols: &mut HashSet<String>,
+) -> Option<MiningCoin> {
+    if coin.rank <= 0 {
+        return None;
+    }
+
+    let rank_factor = clamp(1.0 - ((coin.rank as f64).log10() / 5.0), 0.0, 1.0);
+    let type_factor = if coin.asset_type.eq_ignore_ascii_case("coin") {
+        1.0
+    } else {
+        0.85
+    };
+    let synthetic_price_usd = 10f64.powf(-4.0 + (rank_factor * 5.0));
+    let market_cap_usd = 10f64.powf(3.5 + (rank_factor * 8.5));
+    let volume_24h_usd = 10f64.powf(2.0 + (rank_factor * 7.0));
+    let proxy_usd_day = clamp((0.004 + (rank_factor * 0.22)) * type_factor, 0.002, 0.26);
+
+    let network_hashrate_hs = 1_000.0;
+    let block_time_sec = 60.0;
+    let blocks_per_day = 86_400.0 / block_time_sec;
+    let reference_coin_per_day = proxy_usd_day / synthetic_price_usd.max(f64::EPSILON);
+    let daily_emission = reference_coin_per_day * network_hashrate_hs;
+    let block_reward = daily_emission / blocks_per_day;
+    let display_symbol = unique_catalog_symbol(&coin.symbol, coin.rank as u32, seen_display_symbols);
+
+    Some(MiningCoin {
+        id: synthetic_coin_id(&coin.id),
+        name: coin.name.clone(),
+        symbol: display_symbol,
+        algorithm: "DiscoveryProxy".to_string(),
+        inferred_catalog: true,
+        block_time_sec,
+        block_reward,
+        blocks_per_day,
+        daily_emission,
+        network_hashrate_hs,
+        exchange_rate_btc: synthetic_price_usd / btc_usd.max(f64::EPSILON),
+        price_usd: synthetic_price_usd,
+        market_cap_usd,
+        volume_24h_usd,
+        profitability: (proxy_usd_day / btc_usd.max(f64::EPSILON)) * 1_000_000_000_000.0,
+        profitability24: (proxy_usd_day / btc_usd.max(f64::EPSILON)) * 1_000_000_000_000.0,
+        reference_coin_per_day,
+        reference_btc_revenue: proxy_usd_day / btc_usd.max(f64::EPSILON),
+        reference_hashrate_hs: 1.0,
+        price_trend_pct: 0.0,
+        difficulty_trend_pct: 0.0,
+        volatility: 1.25 - (rank_factor * 0.75),
+        lagging: true,
+        freshness_minutes: 1_440.0,
+    })
+}
+
+fn unique_catalog_symbol(symbol: &str, rank: u32, seen_display_symbols: &mut HashSet<String>) -> String {
+    let base = symbol.trim().to_uppercase();
+    if seen_display_symbols.insert(base.clone()) {
+        return base;
+    }
+
+    let mut candidate = format!("{}@{}", base, rank);
+    if seen_display_symbols.insert(candidate.clone()) {
+        return candidate;
+    }
+
+    let mut suffix = 2u32;
+    loop {
+        candidate = format!("{}@{}-{}", base, rank, suffix);
+        if seen_display_symbols.insert(candidate.clone()) {
+            return candidate;
+        }
+        suffix += 1;
+    }
 }
 
 fn extract_miningpoolstats_timestamp(page: &str) -> Option<u64> {
@@ -1233,6 +1492,13 @@ impl MiningRow {
                     .to_string(),
             );
             return reasons;
+        }
+
+        if self.coin.inferred_catalog {
+            reasons.push(
+                "This row is inferred from catalog market data, not validated mining telemetry."
+                    .to_string(),
+            );
         }
 
         if self.net_usd_day >= 0.0 {
@@ -1487,6 +1753,7 @@ fn score_rows(rows: &mut [MiningRow]) {
                     + row.stability_score * 0.12
                     + row.efficiency_score * 0.16
                     + row.variance_score * 0.12
+                    + if row.coin.inferred_catalog { -14.0 } else { 0.0 }
                     + row.method.score_bias,
                 0.0,
                 100.0,
@@ -1563,6 +1830,20 @@ fn resolve_benchmark(
     }
 
     if let Some(benchmark) = benchmark_opt {
+        if coin.inferred_catalog {
+            return (
+                true,
+                format!(
+                    "Inferred discovery proxy for {} on {}. This row is rankable, but not backed by validated mining telemetry.",
+                    coin.name, rig.name
+                ),
+                benchmark.hashrate_hs,
+                benchmark.power_watts,
+                benchmark.reject_rate_pct,
+                benchmark.miner,
+                benchmark.tuning,
+            );
+        }
         return (
             true,
             format!(
@@ -1873,6 +2154,18 @@ fn safe_pct_change(current: f64, previous: f64) -> f64 {
     }
 }
 
+fn scaled_log_score(value: f64, min_log10: f64, max_log10: f64) -> f64 {
+    if value <= 0.0 {
+        return 0.0;
+    }
+
+    clamp(
+        (value.log10() - min_log10) / (max_log10 - min_log10).max(f64::EPSILON),
+        0.0,
+        1.0,
+    )
+}
+
 fn iso_timestamp_now() -> String {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -1915,6 +2208,7 @@ fn fetch_hashrate_cpu_coins(btc_usd: f64) -> Result<Vec<MiningCoin>, String> {
             name: parsed.name,
             symbol: parsed.symbol,
             algorithm: parsed.algorithm,
+            inferred_catalog: false,
             block_time_sec: parsed.block_time_sec,
             block_reward: parsed.block_reward,
             blocks_per_day,
@@ -2248,9 +2542,41 @@ struct CoinPaprikaCoin {
     name: String,
     symbol: String,
     rank: i64,
-    is_active: bool,
     #[serde(rename = "type")]
     asset_type: String,
+    is_active: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoinGeckoCoin {
+    id: String,
+    symbol: String,
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoinPaprikaTicker {
+    id: String,
+    name: String,
+    symbol: String,
+    rank: i64,
+    quotes: CoinPaprikaQuotes,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoinPaprikaQuotes {
+    #[serde(rename = "USD")]
+    usd: Option<CoinPaprikaQuote>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CoinPaprikaQuote {
+    price: f64,
+    volume_24h: f64,
+    market_cap: f64,
+    percent_change_24h: f64,
+    percent_change_7d: f64,
+    percent_change_30d: f64,
 }
 
 #[cfg(test)]
@@ -2269,5 +2595,26 @@ mod tests {
         let ids = METHODS.iter().map(|method| method.id).collect::<Vec<_>>();
         let unique = ids.iter().copied().collect::<HashSet<_>>();
         assert_eq!(ids.len(), unique.len(), "method ids should be unique");
+    }
+
+    #[test]
+    fn catalog_only_inference_produces_rankable_proxy_coin() {
+        let coin = CoinPaprikaCoin {
+            id: "synthetic-coin".to_string(),
+            name: "Synthetic Coin".to_string(),
+            symbol: "SYNC".to_string(),
+            rank: 123,
+            asset_type: "coin".to_string(),
+            is_active: true,
+        };
+        let mut seen = HashSet::new();
+
+        let inferred =
+            infer_coinpaprika_catalog_coin(&coin, 100_000.0, &mut seen).expect("coin should infer");
+
+        assert_eq!(inferred.algorithm, "DiscoveryProxy");
+        assert!(inferred.inferred_catalog);
+        assert!(inferred.reference_btc_revenue > 0.0);
+        assert!(inferred.price_usd > 0.0);
     }
 }
